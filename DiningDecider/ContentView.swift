@@ -7,7 +7,7 @@ struct ContentView: View {
     @State private var landedCategory = "Rooftop"
     @State private var landedRestaurants: [Restaurant] = []
     @State private var locationManager = LocationManager()
-    @State private var searchRadius: Double = DistanceCalculator.defaultRadiusMiles
+    @State private var searchRadius: SearchRadius = .defaultRadius
 
     // Manual location state
     @State private var locationMode: LocationMode = .currentLocation
@@ -67,7 +67,8 @@ struct ContentView: View {
                     locationMode: $locationMode,
                     manualSearchText: $manualSearchText,
                     manualLocation: $manualLocation,
-                    manualLocationName: $manualLocationName
+                    manualLocationName: $manualLocationName,
+                    searchRadius: $searchRadius
                 )
                 .padding(.horizontal, 20)
                 .padding(.top, 16)
@@ -130,7 +131,7 @@ struct ContentView: View {
             landedRestaurants = restaurantLoader.restaurantsFiltered(
                 for: landedCategory,
                 near: location,
-                radiusMiles: searchRadius
+                radiusMiles: searchRadius.miles
             )
         } else {
             // Fallback: show all restaurants (shuffled, up to 3) when no location
