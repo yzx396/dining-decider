@@ -84,10 +84,14 @@ struct SpinningWheelView: View {
             let size = min(geometry.size.width, geometry.size.height)
             let radius = size / 2 * 0.65
             let midAngle = Double(index) * sectorAngle + sectorAngle / 2 - 90
+            // Wrap 2-word categories onto two lines
+            let wrappedText = text.contains(" ") ? text.replacingOccurrences(of: " ", with: "\n") : text
 
-            Text(text)
+            Text(wrappedText)
                 .font(.caption)
                 .fontWeight(.semibold)
+                .multilineTextAlignment(.center)
+                .lineSpacing(-2)
                 .foregroundColor(color.contrastTextColor)
                 .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
                 .rotationEffect(.degrees(midAngle + 90))
