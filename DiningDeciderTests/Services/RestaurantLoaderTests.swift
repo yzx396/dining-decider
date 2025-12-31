@@ -220,6 +220,103 @@ final class RestaurantLoaderTests: XCTestCase {
         XCTAssertTrue(restaurants.isEmpty)
     }
 
+    // MARK: - Price Level Filtering Tests
+
+    func test_restaurantsFiltered_byPriceLevels_returnsOnlyMatchingPrices() throws {
+        // Given
+        let json = jsonWithMixedPriceLevels()
+        let data = json.data(using: .utf8)!
+        let loader = try RestaurantLoader(data: data)
+        let sfCenter = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
+
+        // When: Filter for only high price levels (3, 4) - Splurge mode
+        let restaurants = loader.restaurantsFiltered(
+            for: "MixedCategory",
+            near: sfCenter,
+            radiusMiles: 50,
+            allowedPriceLevels: [3, 4]
+        )
+
+        // Then: Should only return price level 3 and 4 restaurants
+        XCTAssertTrue(restaurants.allSatisfy { $0.priceLevel >= 3 })
+    }
+
+    func test_restaurantsFiltered_byLowPriceLevels_excludesExpensive() throws {
+        // Given
+        let json = jsonWithMixedPriceLevels()
+        let data = json.data(using: .utf8)!
+        let loader = try RestaurantLoader(data: data)
+        let sfCenter = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
+
+        // When: Filter for only low price levels (1, 2) - Standard mode
+        let restaurants = loader.restaurantsFiltered(
+            for: "MixedCategory",
+            near: sfCenter,
+            radiusMiles: 50,
+            allowedPriceLevels: [1, 2]
+        )
+
+        // Then: Should only return price level 1 and 2 restaurants
+        XCTAssertTrue(restaurants.allSatisfy { $0.priceLevel <= 2 })
+    }
+
+    func test_restaurantsFiltered_withAllPriceLevels_includesAll() throws {
+        // Given
+        let json = jsonWithMixedPriceLevels()
+        let data = json.data(using: .utf8)!
+        let loader = try RestaurantLoader(data: data)
+        let sfCenter = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
+
+        // When: Filter for all price levels (1-4) - Aesthetic mode
+        let restaurants = loader.restaurantsFiltered(
+            for: "MixedCategory",
+            near: sfCenter,
+            radiusMiles: 50,
+            allowedPriceLevels: [1, 2, 3, 4]
+        )
+
+        // Then: Should return restaurants of all price levels (up to 3)
+        XCTAssertEqual(restaurants.count, 3)
+    }
+
+    func test_restaurantsFiltered_withNilPriceLevels_includesAll() throws {
+        // Given
+        let json = jsonWithMixedPriceLevels()
+        let data = json.data(using: .utf8)!
+        let loader = try RestaurantLoader(data: data)
+        let sfCenter = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
+
+        // When: No price filter (nil) - should include all
+        let restaurants = loader.restaurantsFiltered(
+            for: "MixedCategory",
+            near: sfCenter,
+            radiusMiles: 50,
+            allowedPriceLevels: nil
+        )
+
+        // Then: Should return restaurants of all price levels (up to 3)
+        XCTAssertEqual(restaurants.count, 3)
+    }
+
+    func test_restaurantsFiltered_withEmptyPriceLevels_returnsEmpty() throws {
+        // Given
+        let json = jsonWithMixedPriceLevels()
+        let data = json.data(using: .utf8)!
+        let loader = try RestaurantLoader(data: data)
+        let sfCenter = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
+
+        // When: Empty price levels array
+        let restaurants = loader.restaurantsFiltered(
+            for: "MixedCategory",
+            near: sfCenter,
+            radiusMiles: 50,
+            allowedPriceLevels: []
+        )
+
+        // Then: Should return no restaurants
+        XCTAssertTrue(restaurants.isEmpty)
+    }
+
     // MARK: - Helpers
 
     private func validRestaurantJSON() -> String {
@@ -290,6 +387,19 @@ final class RestaurantLoaderTests: XCTestCase {
             { "name": "Restaurant 3", "lat": 37.77, "lng": -122.40, "locs": ["SF"], "query": "R3", "price": 2, "aesthetic": true, "avgCost": 30, "note": "Note 3", "parking": "Street" },
             { "name": "Restaurant 4", "lat": 37.76, "lng": -122.43, "locs": ["SF"], "query": "R4", "price": 2, "aesthetic": true, "avgCost": 30, "note": "Note 4", "parking": "Street" },
             { "name": "Restaurant 5", "lat": 37.75, "lng": -122.44, "locs": ["SF"], "query": "R5", "price": 2, "aesthetic": true, "avgCost": 30, "note": "Note 5", "parking": "Street" }
+          ]
+        }
+        """
+    }
+
+    private func jsonWithMixedPriceLevels() -> String {
+        """
+        {
+          "MixedCategory": [
+            { "name": "Budget Place", "lat": 37.78, "lng": -122.41, "locs": ["SF"], "query": "B1", "price": 1, "aesthetic": false, "avgCost": 10, "note": "Cheap", "parking": "Street" },
+            { "name": "Mid Range", "lat": 37.79, "lng": -122.42, "locs": ["SF"], "query": "M1", "price": 2, "aesthetic": true, "avgCost": 30, "note": "Moderate", "parking": "Street" },
+            { "name": "Upscale Spot", "lat": 37.77, "lng": -122.40, "locs": ["SF"], "query": "U1", "price": 3, "aesthetic": true, "avgCost": 80, "note": "Nice", "parking": "Valet" },
+            { "name": "Luxury Dining", "lat": 37.76, "lng": -122.43, "locs": ["SF"], "query": "L1", "price": 4, "aesthetic": true, "avgCost": 200, "note": "Fancy", "parking": "Valet" }
           ]
         }
         """

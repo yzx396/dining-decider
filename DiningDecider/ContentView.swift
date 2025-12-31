@@ -9,13 +9,19 @@ struct ContentView: View {
     @State private var locationManager = LocationManager()
     @State private var searchRadius: SearchRadius = .defaultRadius
 
+    // Vibe mode state
+    @State private var selectedVibe: VibeMode = .defaultVibe
+
     // Manual location state
     @State private var locationMode: LocationMode = .currentLocation
     @State private var manualSearchText = ""
     @State private var manualLocation: CLLocationCoordinate2D?
     @State private var manualLocationName: String?
 
-    private let sectors = WheelSector.aestheticSectors
+    // Dynamic sectors based on selected vibe
+    private var sectors: [WheelSector] {
+        selectedVibe.sectors
+    }
     private let restaurantLoader: RestaurantLoading
     private let geocodingService: GeocodingProviding
 
@@ -68,7 +74,8 @@ struct ContentView: View {
                     manualSearchText: $manualSearchText,
                     manualLocation: $manualLocation,
                     manualLocationName: $manualLocationName,
-                    searchRadius: $searchRadius
+                    searchRadius: $searchRadius,
+                    selectedVibe: $selectedVibe
                 )
                 .padding(.horizontal, 20)
                 .padding(.top, 16)
@@ -121,22 +128,30 @@ struct ContentView: View {
                 locationManager.startUpdatingLocation()
             }
         }
+        .onChange(of: selectedVibe) { _, _ in
+            // Reset wheel rotation when vibe changes so wheel looks fresh
+            rotation = 0
+        }
     }
 
     private func handleSpinComplete(sectorIndex: Int) {
         landedCategory = sectors[sectorIndex].label
 
-        // Get restaurants filtered by location if available
+        // Get restaurants filtered by location and price level
         if hasValidLocation, let location = activeLocation {
             landedRestaurants = restaurantLoader.restaurantsFiltered(
                 for: landedCategory,
                 near: location,
-                radiusMiles: searchRadius.miles
+                radiusMiles: searchRadius.miles,
+                allowedPriceLevels: selectedVibe.allowedPriceLevels
             )
         } else {
-            // Fallback: show all restaurants (shuffled, up to 3) when no location
+            // Fallback: filter by price level only (no location)
             let allRestaurants = restaurantLoader.restaurants(for: landedCategory)
-            landedRestaurants = allRestaurants.shuffled().prefix(3).map { $0 }
+            let filteredByPrice = allRestaurants.filter { restaurant in
+                selectedVibe.allowsPriceLevel(restaurant.priceLevel)
+            }
+            landedRestaurants = filteredByPrice.shuffled().prefix(3).map { $0 }
         }
 
         showResults = true
@@ -159,7 +174,24 @@ private final class MockRestaurantLoader: RestaurantLoading {
         near location: CLLocationCoordinate2D?,
         radiusMiles: Double
     ) -> [Restaurant] {
+        restaurantsFiltered(
+            for: category,
+            near: location,
+            radiusMiles: radiusMiles,
+            allowedPriceLevels: nil
+        )
+    }
+
+    func restaurantsFiltered(
+        for category: String,
+        near location: CLLocationCoordinate2D?,
+        radiusMiles: Double,
+        allowedPriceLevels: [Int]?
+    ) -> [Restaurant] {
         guard location != nil else { return [] }
+        if let levels = allowedPriceLevels {
+            return Restaurant.skeletonData.filter { levels.contains($0.priceLevel) }
+        }
         return Restaurant.skeletonData
     }
 }
