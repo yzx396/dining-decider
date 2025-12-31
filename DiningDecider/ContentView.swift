@@ -18,6 +18,9 @@ struct ContentView: View {
     @State private var manualLocation: CLLocationCoordinate2D?
     @State private var manualLocationName: String?
 
+    // Party size state
+    @State private var partySize: Int = PartySize.defaultSize
+
     // Dynamic sectors based on selected vibe
     private var sectors: [WheelSector] {
         selectedVibe.sectors
@@ -75,7 +78,8 @@ struct ContentView: View {
                     manualLocation: $manualLocation,
                     manualLocationName: $manualLocationName,
                     searchRadius: $searchRadius,
-                    selectedVibe: $selectedVibe
+                    selectedVibe: $selectedVibe,
+                    partySize: $partySize
                 )
                 .padding(.horizontal, 20)
                 .padding(.top, 16)
@@ -116,6 +120,7 @@ struct ContentView: View {
             ResultsView(
                 category: landedCategory,
                 restaurants: landedRestaurants,
+                partySize: partySize,
                 onSpinAgain: {
                     showResults = false
                 }
