@@ -106,4 +106,33 @@ final class DistanceCalculatorTests: XCTestCase {
         // Then: Should be within default 10 miles
         XCTAssertTrue(isWithin)
     }
+
+    // MARK: - Performance Tests
+
+    func test_distanceCalculation_performance() {
+        let sf = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
+        let oakland = CLLocationCoordinate2D(latitude: 37.8044, longitude: -122.2712)
+
+        measure {
+            for _ in 0..<1000 {
+                _ = DistanceCalculator.distanceInMiles(from: sf, to: oakland)
+            }
+        }
+    }
+
+    func test_radiusCheck_performance() {
+        let center = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
+        let points = (0..<100).map { i in
+            CLLocationCoordinate2D(
+                latitude: 37.7 + Double(i) * 0.01,
+                longitude: -122.4 + Double(i) * 0.01
+            )
+        }
+
+        measure {
+            for point in points {
+                _ = DistanceCalculator.isWithinRadius(point: point, center: center, radiusMiles: 10)
+            }
+        }
+    }
 }

@@ -106,4 +106,14 @@ final class WheelMathTests: XCTestCase {
         // Then
         XCTAssertEqual(angle, 45.0, accuracy: 0.001)
     }
+
+    // MARK: - Performance Tests
+
+    func test_landingSector_performance() {
+        measure {
+            for rotation in stride(from: 0.0, to: 3600.0, by: 1.0) {
+                _ = WheelMath.landingSector(rotation: rotation, sectorCount: 8)
+            }
+        }
+    }
 }
