@@ -4,6 +4,7 @@ struct SpinningWheelView: View {
     let sectors: [WheelSector]
     @Binding var rotation: Double
     let onSpinComplete: ((Int) -> Void)?
+    let hapticManager: HapticManager
 
     @State private var angularVelocity: Double = 0
     @State private var lastAngle: Double = 0
@@ -15,9 +16,15 @@ struct SpinningWheelView: View {
     private let borderWidth: CGFloat = 8
     private let centerDotSize: CGFloat = 50
 
-    init(sectors: [WheelSector], rotation: Binding<Double>, onSpinComplete: ((Int) -> Void)? = nil) {
+    init(
+        sectors: [WheelSector],
+        rotation: Binding<Double>,
+        hapticManager: HapticManager = HapticManager(),
+        onSpinComplete: ((Int) -> Void)? = nil
+    ) {
         self.sectors = sectors
         self._rotation = rotation
+        self.hapticManager = hapticManager
         self.onSpinComplete = onSpinComplete
     }
 
@@ -125,6 +132,8 @@ struct SpinningWheelView: View {
         if !isDragging {
             isDragging = true
             stopAnimation()
+            // Light haptic when user first touches the wheel
+            hapticManager.wheelTouchBegan()
         }
 
         let currentAngle = WheelPhysics.angleFromCenter(center: center, point: value.location)
@@ -157,6 +166,8 @@ struct SpinningWheelView: View {
         // Only start momentum animation if we have meaningful velocity
         if abs(angularVelocity) > WheelPhysics.defaultStopThreshold {
             isSpinning = true
+            // Medium haptic when spin starts
+            hapticManager.spinStarted()
             startDecelerationAnimation()
         }
     }
@@ -200,6 +211,9 @@ struct SpinningWheelView: View {
         isSpinning = false
         angularVelocity = 0
         stopAnimation()
+
+        // Success haptic when spin completes
+        hapticManager.spinCompleted()
 
         // Calculate landing sector and notify
         let sectorIndex = WheelMath.landingSector(rotation: rotation, sectorCount: sectors.count)
