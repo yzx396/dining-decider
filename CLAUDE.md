@@ -2,6 +2,22 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Mandatory Practices
+
+### Test-Driven Development (TDD)
+1. **Write tests first** before implementing any feature or fix
+2. Follow Red-Green-Refactor cycle: failing test → minimal implementation → refactor
+3. Each vertical slice must include tests for all layers (View, ViewModel, Services, Utilities)
+4. Run tests before committing: `xcodebuild test`
+
+### Clean Code
+1. **Single Responsibility**: Each class/struct does one thing well
+2. **Meaningful names**: Variables, functions, types should be self-documenting
+3. **Small functions**: Max 20 lines, single level of abstraction
+4. **No magic numbers**: Use named constants or enums
+5. **SOLID principles**: Especially Dependency Injection for testability
+6. **Boy Scout Rule**: Leave code cleaner than you found it
+
 ## Project Overview
 
 Dining Decider is a native iOS app (SwiftUI, iOS 17+) that helps users decide where to eat via an interactive spinning wheel. Users drag to spin a wheel, which lands on a dining category and shows nearby restaurant recommendations.
@@ -40,6 +56,12 @@ DiningDecider/
 ├── Data/                   # restaurants.json + RestaurantLoader
 ├── Utilities/              # WheelMath, WheelPhysics, HapticManager
 └── Extensions/             # Color+Theme (design tokens)
+
+DiningDeciderTests/
+├── ViewModels/             # ViewModel unit tests
+├── Services/               # Service unit tests
+├── Utilities/              # Utility function tests
+└── Mocks/                  # Mock implementations for testing
 ```
 
 ## Key Architecture Patterns
