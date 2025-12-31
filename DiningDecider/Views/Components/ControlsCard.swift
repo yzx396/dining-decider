@@ -17,10 +17,13 @@ struct ControlsCard: View {
     @Binding var manualSearchText: String
     @Binding var manualLocation: CLLocationCoordinate2D?
     @Binding var manualLocationName: String?
+    @Binding var searchRadius: SearchRadius
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             locationSection
+
+            RadiusPicker(selectedRadius: $searchRadius)
         }
         .padding(20)
         .background(Color.theme.cardBackground)
@@ -211,6 +214,7 @@ struct ControlsCard: View {
         @State private var searchText = ""
         @State private var location: CLLocationCoordinate2D?
         @State private var locationName: String?
+        @State private var radius: SearchRadius = .defaultRadius
 
         var body: some View {
             ZStack {
@@ -222,7 +226,8 @@ struct ControlsCard: View {
                     locationMode: $mode,
                     manualSearchText: $searchText,
                     manualLocation: $location,
-                    manualLocationName: $locationName
+                    manualLocationName: $locationName,
+                    searchRadius: $radius
                 )
                 .padding()
             }
@@ -237,6 +242,7 @@ struct ControlsCard: View {
         @State private var searchText = ""
         @State private var location: CLLocationCoordinate2D?
         @State private var locationName: String?
+        @State private var radius: SearchRadius = .defaultRadius
 
         var body: some View {
             ZStack {
@@ -248,7 +254,8 @@ struct ControlsCard: View {
                     locationMode: $mode,
                     manualSearchText: $searchText,
                     manualLocation: $location,
-                    manualLocationName: $locationName
+                    manualLocationName: $locationName,
+                    searchRadius: $radius
                 )
                 .padding()
             }
@@ -263,6 +270,7 @@ struct ControlsCard: View {
         @State private var searchText = ""
         @State private var location: CLLocationCoordinate2D?
         @State private var locationName: String?
+        @State private var radius: SearchRadius = .defaultRadius
 
         var body: some View {
             ZStack {
@@ -274,7 +282,8 @@ struct ControlsCard: View {
                     locationMode: $mode,
                     manualSearchText: $searchText,
                     manualLocation: $location,
-                    manualLocationName: $locationName
+                    manualLocationName: $locationName,
+                    searchRadius: $radius
                 )
                 .padding()
             }
@@ -292,6 +301,7 @@ struct ControlsCard: View {
             longitude: -122.4194
         )
         @State private var locationName: String? = "San Francisco, CA"
+        @State private var radius: SearchRadius = .defaultRadius
 
         var body: some View {
             ZStack {
@@ -303,7 +313,8 @@ struct ControlsCard: View {
                     locationMode: $mode,
                     manualSearchText: $searchText,
                     manualLocation: $location,
-                    manualLocationName: $locationName
+                    manualLocationName: $locationName,
+                    searchRadius: $radius
                 )
                 .padding()
             }
