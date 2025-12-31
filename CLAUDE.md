@@ -7,50 +7,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Test-Driven Development (TDD)
 1. **Write tests first** before implementing any feature or fix
 2. Follow Red-Green-Refactor cycle: failing test → minimal implementation → refactor
-3. Each vertical slice must include tests for all layers (View, ViewModel, Services, Utilities)
-4. Run tests before committing: `xcodebuild test`
+3. Each vertical slice must include tests for all layers (ViewModel, Services, Utilities)
 
 ### Clean Code
 1. **Single Responsibility**: Each class/struct does one thing well
-2. **Meaningful names**: Variables, functions, types should be self-documenting
-3. **Small functions**: Max 20 lines, single level of abstraction
-4. **No magic numbers**: Use named constants or enums
-5. **SOLID principles**: Especially Dependency Injection for testability
-6. **Boy Scout Rule**: Leave code cleaner than you found it
+2. **Small functions**: Max 20 lines, single level of abstraction
+3. **No magic numbers**: Use named constants or enums
+4. **SOLID principles**: Especially Dependency Injection for testability
 
 ## Project Overview
 
 Dining Decider is a native iOS app (SwiftUI, iOS 17+) that helps users decide where to eat via an interactive spinning wheel. Users drag to spin a wheel, which lands on a dining category and shows nearby restaurant recommendations.
-
-## Tech Stack
-
-- **UI**: SwiftUI with @Observable state management
-- **Minimum iOS**: 17.0
-- **Architecture**: MVVM (Views → ViewModels → Models/Services)
-- **Location**: CoreLocation + MapKit geocoding
-- **Animation**: SwiftUI animations with gesture-based physics
-
-## Getting Started (New Project Setup)
-
-1. **Create Xcode project**: File → New → Project → iOS App
-   - Product Name: `DiningDecider`
-   - Interface: SwiftUI
-   - Language: Swift
-   - Storage: None
-   - Include Tests: Yes
-
-2. **Add Location capability**:
-   - Select project → Signing & Capabilities → + Capability → Location
-
-3. **Configure Info.plist** (add these keys):
-   ```
-   NSLocationWhenInUseUsageDescription = "To find restaurants near you"
-   ```
-
-4. **Add restaurants.json to bundle**:
-   - Drag file into Xcode project navigator
-   - Ensure "Copy items if needed" is checked
-   - Target membership: DiningDecider
 
 ## Build Commands
 
@@ -61,23 +28,28 @@ open DiningDecider.xcodeproj
 # Build from command line
 xcodebuild -scheme DiningDecider -destination 'platform=iOS Simulator,name=iPhone 15 Pro'
 
-# Run tests
+# Run all tests
 xcodebuild test -scheme DiningDecider -destination 'platform=iOS Simulator,name=iPhone 15 Pro'
+
+# Run a single test class
+xcodebuild test -scheme DiningDecider -destination 'platform=iOS Simulator,name=iPhone 15 Pro' -only-testing:DiningDeciderTests/WheelMathTests
+
+# Run a single test method
+xcodebuild test -scheme DiningDecider -destination 'platform=iOS Simulator,name=iPhone 15 Pro' -only-testing:DiningDeciderTests/WheelMathTests/test_landingSector_withZeroRotation_returnsFirstSector
 
 # Lint code (install: brew install swiftlint)
 swiftlint
 ```
 
-## Project Structure
+## Target Project Structure
 
 ```
 DiningDecider/
-├── App/                    # App entry point
 ├── Views/                  # SwiftUI views
-│   └── Components/         # Reusable UI components
-├── ViewModels/             # @Observable view models
+│   └── Components/         # Reusable UI components (WheelView, ControlsCard, etc.)
+├── ViewModels/             # @Observable view models (DiningViewModel)
 ├── Models/                 # Data models (Restaurant, WheelSector, VibeMode)
-├── Services/               # LocationManager, GeocodingService
+├── Services/               # LocationManager, GeocodingService (with protocols)
 ├── Data/                   # restaurants.json + RestaurantLoader
 ├── Utilities/              # WheelMath, WheelPhysics, HapticManager
 └── Extensions/             # Color+Theme (design tokens)
@@ -128,30 +100,6 @@ final class MockLocationProvider: LocationProviding {
 
 Apply same pattern to: `RestaurantLoading`, `GeocodingService`, `HapticProviding`.
 
-## SwiftUI Quick Reference
-
-### Property Wrappers
-- `@State` - Local view state (value types)
-- `@Observable` - Shared state class (iOS 17+)
-- `@Environment` - System values (\.colorScheme, \.dismiss)
-- `@Binding` - Two-way connection to parent's state
-
-### Common Patterns
-```swift
-.sheet(isPresented: $showSheet) { }     // Modal presentation
-.onAppear { }                            // Run on view appear
-.task { }                                // Async work on appear
-GeometryReader { geo in }                // Get parent size
-```
-
-### Gesture Basics
-```swift
-.gesture(DragGesture()
-    .onChanged { value in }              // During drag
-    .onEnded { value in }                // On release
-)
-```
-
 ## Accessibility
 
 All interactive components must support VoiceOver:
@@ -165,7 +113,7 @@ WheelView()
 
 ## Design System
 
-Reference screenshots in `docs/UX/`. Key colors:
+Reference screenshots in `docs/UX/` (source of truth for visual design). Key colors:
 - Background: #F0EFE9 (warm cream)
 - Primary button: #C8A299 (dusty rose)
 - Vibe colors: Aesthetic #D98880, Splurge #884EA0, Standard #7F8C8D
@@ -176,4 +124,4 @@ Each vibe mode has its own wheel color palette. See `docs/PLAN.md` for full desi
 
 - `docs/MVP.md` - Feature specs, models, code examples
 - `docs/PLAN.md` - Implementation plan with vertical slices and acceptance criteria
-- `docs/UX/` - Reference screenshots (source of truth for visual design)
+- `docs/UX/` - Reference screenshots for visual design
