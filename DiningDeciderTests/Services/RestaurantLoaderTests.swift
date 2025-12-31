@@ -1,4 +1,5 @@
 import XCTest
+import CoreLocation
 @testable import DiningDecider
 
 final class RestaurantLoaderTests: XCTestCase {
@@ -68,8 +69,8 @@ final class RestaurantLoaderTests: XCTestCase {
         let restaurants = loader.restaurants(for: "Rooftop")
 
         // Then
-        XCTAssertEqual(restaurants.count, 2)
-        XCTAssertEqual(restaurants[0].name, "RH Rooftop")
+        XCTAssertEqual(restaurants.count, 3)
+        XCTAssertEqual(restaurants[0].name, "RH Rooftop SF")
         XCTAssertEqual(restaurants[1].name, "Charmaine's")
     }
 
@@ -97,7 +98,7 @@ final class RestaurantLoaderTests: XCTestCase {
         let restaurant = restaurants.first!
 
         // Then
-        XCTAssertEqual(restaurant.name, "RH Rooftop")
+        XCTAssertEqual(restaurant.name, "RH Rooftop SF")
         XCTAssertEqual(restaurant.priceLevel, 3)
         XCTAssertEqual(restaurant.averageCost, 70)
         XCTAssertEqual(restaurant.description, "Chandeliers, glass atrium, views.")
@@ -130,6 +131,95 @@ final class RestaurantLoaderTests: XCTestCase {
         XCTAssertTrue(loader.allCategories.contains("Rooftop"))
     }
 
+    // MARK: - Distance Filtering Tests
+
+    func test_restaurants_containsCoordinates() throws {
+        // Given
+        let json = validRestaurantJSON()
+        let data = json.data(using: .utf8)!
+        let loader = try RestaurantLoader(data: data)
+
+        // When
+        let restaurants = loader.restaurants(for: "Rooftop")
+        let restaurant = restaurants.first!
+
+        // Then
+        XCTAssertEqual(restaurant.lat, 37.7877, accuracy: 0.0001)
+        XCTAssertEqual(restaurant.lng, -122.4085, accuracy: 0.0001)
+    }
+
+    func test_restaurantsFiltered_byDistance_returnsOnlyNearby() throws {
+        // Given
+        let json = validRestaurantJSON()
+        let data = json.data(using: .utf8)!
+        let loader = try RestaurantLoader(data: data)
+        let sfCenter = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
+
+        // When: Filter with 10 mile radius - should get SF restaurants only
+        let restaurants = loader.restaurantsFiltered(
+            for: "Rooftop",
+            near: sfCenter,
+            radiusMiles: 10
+        )
+
+        // Then: Only SF restaurants within 10 miles
+        XCTAssertEqual(restaurants.count, 2) // RH Rooftop SF and Charmaine's
+        XCTAssertTrue(restaurants.allSatisfy { $0.name.contains("SF") || $0.name == "Charmaine's" || $0.name == "RH Rooftop SF" })
+    }
+
+    func test_restaurantsFiltered_withSmallRadius_excludesDistantRestaurants() throws {
+        // Given
+        let json = validRestaurantJSON()
+        let data = json.data(using: .utf8)!
+        let loader = try RestaurantLoader(data: data)
+        let sfCenter = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
+
+        // When: Filter with 1 mile radius - very restrictive
+        let restaurants = loader.restaurantsFiltered(
+            for: "Rooftop",
+            near: sfCenter,
+            radiusMiles: 1
+        )
+
+        // Then: Should get restaurants within 1 mile
+        XCTAssertLessThanOrEqual(restaurants.count, 2)
+    }
+
+    func test_restaurantsFiltered_returnsMaxThree() throws {
+        // Given
+        let json = jsonWithManyRestaurants()
+        let data = json.data(using: .utf8)!
+        let loader = try RestaurantLoader(data: data)
+        let sfCenter = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
+
+        // When
+        let restaurants = loader.restaurantsFiltered(
+            for: "TestCategory",
+            near: sfCenter,
+            radiusMiles: 50
+        )
+
+        // Then: Should return at most 3
+        XCTAssertLessThanOrEqual(restaurants.count, 3)
+    }
+
+    func test_restaurantsFiltered_withNoLocation_returnsEmpty() throws {
+        // Given
+        let json = validRestaurantJSON()
+        let data = json.data(using: .utf8)!
+        let loader = try RestaurantLoader(data: data)
+
+        // When: No location provided (nil center)
+        let restaurants = loader.restaurantsFiltered(
+            for: "Rooftop",
+            near: nil,
+            radiusMiles: 10
+        )
+
+        // Then: Returns empty when no location
+        XCTAssertTrue(restaurants.isEmpty)
+    }
+
     // MARK: - Helpers
 
     private func validRestaurantJSON() -> String {
@@ -137,8 +227,10 @@ final class RestaurantLoaderTests: XCTestCase {
         {
           "Rooftop": [
             {
-              "name": "RH Rooftop",
-              "locs": ["SF", "NYC"],
+              "name": "RH Rooftop SF",
+              "lat": 37.7877,
+              "lng": -122.4085,
+              "locs": ["SF"],
               "query": "RH Rooftop Restaurant",
               "price": 3,
               "aesthetic": true,
@@ -148,6 +240,8 @@ final class RestaurantLoaderTests: XCTestCase {
             },
             {
               "name": "Charmaine's",
+              "lat": 37.7873,
+              "lng": -122.4101,
               "locs": ["SF"],
               "query": "Charmaine's Rooftop",
               "price": 3,
@@ -155,11 +249,25 @@ final class RestaurantLoaderTests: XCTestCase {
               "avgCost": 45,
               "note": "Fire pits and chic decor.",
               "parking": "Valet."
+            },
+            {
+              "name": "RH Rooftop NYC",
+              "lat": 40.7409,
+              "lng": -73.9897,
+              "locs": ["NYC"],
+              "query": "RH Rooftop Restaurant NYC",
+              "price": 3,
+              "aesthetic": true,
+              "avgCost": 70,
+              "note": "NYC location.",
+              "parking": "Street."
             }
           ],
           "Cafe": [
             {
               "name": "Sightglass Coffee",
+              "lat": 37.7749,
+              "lng": -122.4194,
               "locs": ["SF"],
               "query": "Sightglass Coffee San Francisco",
               "price": 2,
@@ -168,6 +276,20 @@ final class RestaurantLoaderTests: XCTestCase {
               "note": "Industrial-chic coffee roastery.",
               "parking": "Street parking."
             }
+          ]
+        }
+        """
+    }
+
+    private func jsonWithManyRestaurants() -> String {
+        """
+        {
+          "TestCategory": [
+            { "name": "Restaurant 1", "lat": 37.78, "lng": -122.41, "locs": ["SF"], "query": "R1", "price": 2, "aesthetic": true, "avgCost": 30, "note": "Note 1", "parking": "Street" },
+            { "name": "Restaurant 2", "lat": 37.79, "lng": -122.42, "locs": ["SF"], "query": "R2", "price": 2, "aesthetic": true, "avgCost": 30, "note": "Note 2", "parking": "Street" },
+            { "name": "Restaurant 3", "lat": 37.77, "lng": -122.40, "locs": ["SF"], "query": "R3", "price": 2, "aesthetic": true, "avgCost": 30, "note": "Note 3", "parking": "Street" },
+            { "name": "Restaurant 4", "lat": 37.76, "lng": -122.43, "locs": ["SF"], "query": "R4", "price": 2, "aesthetic": true, "avgCost": 30, "note": "Note 4", "parking": "Street" },
+            { "name": "Restaurant 5", "lat": 37.75, "lng": -122.44, "locs": ["SF"], "query": "R5", "price": 2, "aesthetic": true, "avgCost": 30, "note": "Note 5", "parking": "Street" }
           ]
         }
         """

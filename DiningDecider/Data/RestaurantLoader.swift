@@ -1,4 +1,5 @@
 import Foundation
+import CoreLocation
 
 /// Error types for restaurant loading
 enum RestaurantLoaderError: Error, LocalizedError {
@@ -19,11 +20,18 @@ enum RestaurantLoaderError: Error, LocalizedError {
 protocol RestaurantLoading {
     var allCategories: [String] { get }
     func restaurants(for category: String) -> [Restaurant]
+    func restaurantsFiltered(
+        for category: String,
+        near location: CLLocationCoordinate2D?,
+        radiusMiles: Double
+    ) -> [Restaurant]
 }
 
 /// Raw restaurant data matching JSON structure
 private struct RawRestaurant: Codable {
     let name: String
+    let lat: Double
+    let lng: Double
     let locs: [String]
     let query: String
     let price: Int
@@ -36,8 +44,8 @@ private struct RawRestaurant: Codable {
         Restaurant(
             id: UUID(),
             name: name,
-            lat: 0,  // Placeholder - will be added in location slice
-            lng: 0,
+            lat: lat,
+            lng: lng,
             priceLevel: price,
             averageCost: avgCost,
             description: note,
@@ -90,5 +98,33 @@ final class RestaurantLoader: RestaurantLoading {
 
     func restaurants(for category: String) -> [Restaurant] {
         categorizedRestaurants[category] ?? []
+    }
+
+    /// Returns restaurants filtered by distance from a location
+    /// - Parameters:
+    ///   - category: The category to filter
+    ///   - location: User's current location (returns empty if nil)
+    ///   - radiusMiles: Search radius in miles (default 10)
+    /// - Returns: Up to 3 shuffled restaurants within the radius
+    func restaurantsFiltered(
+        for category: String,
+        near location: CLLocationCoordinate2D?,
+        radiusMiles: Double = DistanceCalculator.defaultRadiusMiles
+    ) -> [Restaurant] {
+        guard let location = location else {
+            return []
+        }
+
+        return restaurants(for: category)
+            .filter { restaurant in
+                DistanceCalculator.isWithinRadius(
+                    point: restaurant.coordinate,
+                    center: location,
+                    radiusMiles: radiusMiles
+                )
+            }
+            .shuffled()
+            .prefix(3)
+            .map { $0 }
     }
 }
