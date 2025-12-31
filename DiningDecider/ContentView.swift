@@ -3,7 +3,6 @@ import SwiftUI
 struct ContentView: View {
     @State private var rotation: Double = 0
     @State private var showResults = false
-    @State private var isSpinning = false
     @State private var landedCategory = "Rooftop"
 
     private let sectors = WheelSector.skeletonSectors
@@ -19,18 +18,17 @@ struct ContentView: View {
                 // Wheel
                 SpinningWheelView(
                     sectors: sectors,
-                    rotation: rotation
-                )
-                .frame(width: 300, height: 300)
-                .onTapGesture {
-                    guard !isSpinning else { return }
-                    spin()
+                    rotation: $rotation
+                ) { sectorIndex in
+                    handleSpinComplete(sectorIndex: sectorIndex)
                 }
+                .frame(width: 300, height: 300)
                 .accessibilityLabel("Spinning wheel")
-                .accessibilityHint("Tap to spin and get a restaurant recommendation")
+                .accessibilityHint("Swipe to spin and get a restaurant recommendation")
+                .accessibilityAddTraits(.allowsDirectInteraction)
 
                 // Hint text
-                Text(isSpinning ? "Spinning..." : "Tap wheel to spin")
+                Text("Swipe wheel to spin")
                     .font(.subheadline)
                     .foregroundColor(Color.theme.label)
 
@@ -59,26 +57,9 @@ struct ContentView: View {
         }
     }
 
-    private func spin() {
-        isSpinning = true
-
-        // Random rotation between 720 and 1080 degrees (2-3 full spins)
-        let spinAmount = Double.random(in: 720...1080)
-
-        withAnimation(.easeOut(duration: 2)) {
-            rotation += spinAmount
-        }
-
-        // Calculate landing sector after animation
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            let sectorIndex = WheelMath.landingSector(
-                rotation: rotation,
-                sectorCount: sectors.count
-            )
-            landedCategory = sectors[sectorIndex].label
-            isSpinning = false
-            showResults = true
-        }
+    private func handleSpinComplete(sectorIndex: Int) {
+        landedCategory = sectors[sectorIndex].label
+        showResults = true
     }
 }
 
