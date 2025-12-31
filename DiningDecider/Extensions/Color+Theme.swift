@@ -45,6 +45,7 @@ struct ThemeColors {
     let primaryButton = Color(hex: "C8A299")
     let primaryButtonText = Color.white
     let disabledButton = Color(hex: "DDDDDD")
+    let borderColor = Color(hex: "E0E0E0")
 
     // Wheel
     let wheelBorder = Color(hex: "EAE8E1")

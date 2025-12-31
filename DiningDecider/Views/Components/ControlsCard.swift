@@ -19,10 +19,12 @@ struct ControlsCard: View {
     @Binding var manualLocationName: String?
     @Binding var searchRadius: SearchRadius
     @Binding var selectedVibe: VibeMode
+    @Binding var partySize: Int
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            locationSection
+            // Top row: Location and Party Size
+            topRow
 
             RadiusPicker(selectedRadius: $searchRadius)
 
@@ -32,6 +34,17 @@ struct ControlsCard: View {
         .background(Color.theme.cardBackground)
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+    }
+
+    // MARK: - Top Row (Location + Party Size)
+
+    private var topRow: some View {
+        HStack(alignment: .top, spacing: 16) {
+            locationSection
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            PartySizeStepper(partySize: $partySize)
+        }
     }
 
     // MARK: - Location Section
@@ -219,6 +232,7 @@ struct ControlsCard: View {
         @State private var locationName: String?
         @State private var radius: SearchRadius = .defaultRadius
         @State private var vibe: VibeMode = .aesthetic
+        @State private var partySize = PartySize.defaultSize
 
         var body: some View {
             ZStack {
@@ -232,7 +246,8 @@ struct ControlsCard: View {
                     manualLocation: $location,
                     manualLocationName: $locationName,
                     searchRadius: $radius,
-                    selectedVibe: $vibe
+                    selectedVibe: $vibe,
+                    partySize: $partySize
                 )
                 .padding()
             }
@@ -249,6 +264,7 @@ struct ControlsCard: View {
         @State private var locationName: String?
         @State private var radius: SearchRadius = .defaultRadius
         @State private var vibe: VibeMode = .aesthetic
+        @State private var partySize = PartySize.defaultSize
 
         var body: some View {
             ZStack {
@@ -262,7 +278,8 @@ struct ControlsCard: View {
                     manualLocation: $location,
                     manualLocationName: $locationName,
                     searchRadius: $radius,
-                    selectedVibe: $vibe
+                    selectedVibe: $vibe,
+                    partySize: $partySize
                 )
                 .padding()
             }
@@ -279,6 +296,7 @@ struct ControlsCard: View {
         @State private var locationName: String?
         @State private var radius: SearchRadius = .defaultRadius
         @State private var vibe: VibeMode = .splurge
+        @State private var partySize = 4
 
         var body: some View {
             ZStack {
@@ -292,7 +310,8 @@ struct ControlsCard: View {
                     manualLocation: $location,
                     manualLocationName: $locationName,
                     searchRadius: $radius,
-                    selectedVibe: $vibe
+                    selectedVibe: $vibe,
+                    partySize: $partySize
                 )
                 .padding()
             }
@@ -312,6 +331,7 @@ struct ControlsCard: View {
         @State private var locationName: String? = "San Francisco, CA"
         @State private var radius: SearchRadius = .defaultRadius
         @State private var vibe: VibeMode = .standard
+        @State private var partySize = 6
 
         var body: some View {
             ZStack {
@@ -325,7 +345,8 @@ struct ControlsCard: View {
                     manualLocation: $location,
                     manualLocationName: $locationName,
                     searchRadius: $radius,
-                    selectedVibe: $vibe
+                    selectedVibe: $vibe,
+                    partySize: $partySize
                 )
                 .padding()
             }
