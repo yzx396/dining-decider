@@ -9,8 +9,15 @@ struct ContentView: View {
     @State private var locationManager = LocationManager()
     @State private var searchRadius: Double = DistanceCalculator.defaultRadiusMiles
 
+    // Manual location state
+    @State private var locationMode: LocationMode = .currentLocation
+    @State private var manualSearchText = ""
+    @State private var manualLocation: CLLocationCoordinate2D?
+    @State private var manualLocationName: String?
+
     private let sectors = WheelSector.aestheticSectors
     private let restaurantLoader: RestaurantLoading
+    private let geocodingService: GeocodingProviding
 
     init() {
         // Initialize restaurant loader, fallback to empty if file not found
@@ -19,6 +26,28 @@ struct ContentView: View {
         } else {
             // Fallback for testing/development
             self.restaurantLoader = MockRestaurantLoader()
+        }
+
+        self.geocodingService = GeocodingService()
+    }
+
+    // Computed property for the active location to use for filtering
+    private var activeLocation: CLLocationCoordinate2D? {
+        switch locationMode {
+        case .currentLocation:
+            return locationManager.currentLocation
+        case .manual:
+            return manualLocation
+        }
+    }
+
+    // Whether we have a valid location to filter by
+    private var hasValidLocation: Bool {
+        switch locationMode {
+        case .currentLocation:
+            return locationManager.isAuthorized && locationManager.currentLocation != nil
+        case .manual:
+            return manualLocation != nil
         }
     }
 
@@ -31,9 +60,14 @@ struct ContentView: View {
                 // Controls Card
                 ControlsCard(
                     isLocationAuthorized: locationManager.isAuthorized,
+                    geocodingService: geocodingService,
                     onRequestLocation: {
                         locationManager.requestPermission()
-                    }
+                    },
+                    locationMode: $locationMode,
+                    manualSearchText: $manualSearchText,
+                    manualLocation: $manualLocation,
+                    manualLocationName: $manualLocationName
                 )
                 .padding(.horizontal, 20)
                 .padding(.top, 16)
@@ -80,13 +114,19 @@ struct ContentView: View {
             )
             .presentationDetents([.large])
         }
+        .onChange(of: locationManager.isAuthorized) { _, isAuthorized in
+            // If location becomes authorized and we're not in manual mode, switch to current
+            if isAuthorized && locationMode == .currentLocation {
+                locationManager.startUpdatingLocation()
+            }
+        }
     }
 
     private func handleSpinComplete(sectorIndex: Int) {
         landedCategory = sectors[sectorIndex].label
 
         // Get restaurants filtered by location if available
-        if locationManager.isAuthorized, let location = locationManager.currentLocation {
+        if hasValidLocation, let location = activeLocation {
             landedRestaurants = restaurantLoader.restaurantsFiltered(
                 for: landedCategory,
                 near: location,
