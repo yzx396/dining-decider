@@ -3,258 +3,133 @@ import SwiftUI
 @testable import DiningDecider
 
 final class ColorLuminanceTests: XCTestCase {
+    // Cache UIColor conversions to avoid expensive repeated conversions
+    private let charcoalUIColor = UIColor(Color.theme.textPrimary)
+    private let offWhiteUIColor = UIColor(Color.theme.textSecondary)
+
+    private lazy var charcoalComponents = charcoalUIColor.cgColor.components
+    private lazy var offWhiteComponents = offWhiteUIColor.cgColor.components
 
     // MARK: - Relative Luminance Tests
 
-    func test_relativeLuminance_whiteColor_returnsOne() {
-        // Given
-        let whiteColor = Color.white
+    func test_relativeLuminance_extremeAndMidRangeValues() {
+        // Test white, black, and grays in single test to reduce setup overhead
+        let testCases: [(color: Color, minLuminance: Double?, maxLuminance: Double?, description: String)] = [
+            (Color.white, 0.99, 1.0, "White"),
+            (Color.black, 0.0, 0.01, "Black"),
+            (Color(hex: "F0F0F0"), 0.7, 1.0, "Light gray"),
+            (Color(hex: "333333"), 0.0, 0.3, "Dark gray"),
+            (Color(hex: "808080"), 0.2, 0.6, "Medium gray"),
+        ]
 
-        // When
-        let luminance = whiteColor.relativeLuminance
+        for testCase in testCases {
+            let luminance = testCase.color.relativeLuminance
 
-        // Then
-        XCTAssertEqual(luminance, 1.0, accuracy: 0.01, "White color should have luminance close to 1.0")
-    }
-
-    func test_relativeLuminance_blackColor_returnsZero() {
-        // Given
-        let blackColor = Color.black
-
-        // When
-        let luminance = blackColor.relativeLuminance
-
-        // Then
-        XCTAssertEqual(luminance, 0.0, accuracy: 0.01, "Black color should have luminance close to 0.0")
-    }
-
-    func test_relativeLuminance_lightGrayColor_returnsHighValue() {
-        // Given
-        let lightGray = Color(hex: "F0F0F0")
-
-        // When
-        let luminance = lightGray.relativeLuminance
-
-        // Then
-        XCTAssertGreaterThan(luminance, 0.7, "Light gray should have high luminance (>0.7)")
-    }
-
-    func test_relativeLuminance_darkGrayColor_returnsLowValue() {
-        // Given
-        let darkGray = Color(hex: "333333")
-
-        // When
-        let luminance = darkGray.relativeLuminance
-
-        // Then
-        XCTAssertLessThan(luminance, 0.3, "Dark gray should have low luminance (<0.3)")
-    }
-
-    func test_relativeLuminance_mediumGrayColor_returnsMidRange() {
-        // Given
-        let mediumGray = Color(hex: "808080")
-
-        // When
-        let luminance = mediumGray.relativeLuminance
-
-        // Then
-        XCTAssertGreaterThan(luminance, 0.2, "Medium gray luminance should be > 0.2")
-        XCTAssertLessThan(luminance, 0.6, "Medium gray luminance should be < 0.6")
+            if let min = testCase.minLuminance {
+                XCTAssertGreaterThanOrEqual(luminance, min, "\(testCase.description): luminance should be >= \(min)")
+            }
+            if let max = testCase.maxLuminance {
+                XCTAssertLessThanOrEqual(luminance, max, "\(testCase.description): luminance should be <= \(max)")
+            }
+        }
     }
 
     // MARK: - Text Color Selection Tests
 
-    func test_contrastTextColor_withWhiteBackground_returnsCharcoalText() {
-        // Given
-        let whiteBackground = Color.white
+    func test_contrastTextColor_lightBackgrounds_returnCharcoalText() {
+        // Combine multiple light color tests to reduce setup overhead
+        let lightColors: [(color: Color, description: String)] = [
+            (Color.white, "White"),
+            (Color(hex: "F5B7B1"), "Light pink (Aesthetic)"),
+            (Color(hex: "FAD7A0"), "Peach (Aesthetic)"),
+        ]
 
-        // When
-        let textColor = whiteBackground.contrastTextColor
+        for testCase in lightColors {
+            let textColor = testCase.color.contrastTextColor
+            let textUIColor = UIColor(textColor)
 
-        // Then
-        // Compare UIColor representations since Color doesn't have direct equality
-        let expectedColor = Color.theme.textPrimary
-        XCTAssertEqual(
-            UIColor(textColor).cgColor.components,
-            UIColor(expectedColor).cgColor.components,
-            "White background should get charcoal text (textPrimary)"
-        )
+            XCTAssertEqual(
+                textUIColor.cgColor.components,
+                charcoalComponents,
+                "\(testCase.description) should get charcoal text"
+            )
+        }
     }
 
-    func test_contrastTextColor_withBlackBackground_returnsOffWhiteText() {
-        // Given
-        let blackBackground = Color.black
+    func test_contrastTextColor_darkBackgrounds_returnOffWhiteText() {
+        // Combine multiple dark color tests to reduce setup overhead
+        let darkColors: [(color: Color, description: String)] = [
+            (Color.black, "Black"),
+            (Color(hex: "884EA0"), "Deep purple (Splurge)"),
+            (Color(hex: "5B2C6F"), "Darker purple (Splurge)"),
+            (Color(hex: "A4B494"), "Sage green (Standard, luminance ~0.44)"),
+        ]
 
-        // When
-        let textColor = blackBackground.contrastTextColor
+        for testCase in darkColors {
+            let textColor = testCase.color.contrastTextColor
+            let textUIColor = UIColor(textColor)
 
-        // Then
-        let expectedColor = Color.theme.textSecondary
-        XCTAssertEqual(
-            UIColor(textColor).cgColor.components,
-            UIColor(expectedColor).cgColor.components,
-            "Black background should get off-white text (textSecondary)"
-        )
-    }
-
-    func test_contrastTextColor_lightPinkFromAestheticPalette_returnsCharcoalText() {
-        // Given - Light pink from Aesthetic wheel (#F5B7B1)
-        let lightPink = Color(hex: "F5B7B1")
-
-        // When
-        let textColor = lightPink.contrastTextColor
-
-        // Then
-        let expectedColor = Color.theme.textPrimary
-        XCTAssertEqual(
-            UIColor(textColor).cgColor.components,
-            UIColor(expectedColor).cgColor.components,
-            "Light pink should get charcoal text for readability"
-        )
-    }
-
-    func test_contrastTextColor_deepPurpleFromSplurgePalette_returnsOffWhiteText() {
-        // Given - Deep purple from Splurge wheel (#884EA0)
-        let deepPurple = Color(hex: "884EA0")
-
-        // When
-        let textColor = deepPurple.contrastTextColor
-
-        // Then
-        let expectedColor = Color.theme.textSecondary
-        XCTAssertEqual(
-            UIColor(textColor).cgColor.components,
-            UIColor(expectedColor).cgColor.components,
-            "Deep purple should get off-white text for readability"
-        )
-    }
-
-    func test_contrastTextColor_sageGreenFromStandardPalette_returnsOffWhiteText() {
-        // Given - Sage green from Standard wheel (#A4B494)
-        // Note: Sage green has luminance ~0.44, which is < 0.5 threshold
-        let sageGreen = Color(hex: "A4B494")
-
-        // When
-        let textColor = sageGreen.contrastTextColor
-
-        // Then
-        let expectedColor = Color.theme.textSecondary
-        XCTAssertEqual(
-            UIColor(textColor).cgColor.components,
-            UIColor(expectedColor).cgColor.components,
-            "Sage green (low luminance) should get off-white text for readability"
-        )
-    }
-
-    func test_contrastTextColor_peachFromAestheticPalette_returnsCharcoalText() {
-        // Given - Peach from Aesthetic wheel (#FAD7A0)
-        let peach = Color(hex: "FAD7A0")
-
-        // When
-        let textColor = peach.contrastTextColor
-
-        // Then
-        let expectedColor = Color.theme.textPrimary
-        XCTAssertEqual(
-            UIColor(textColor).cgColor.components,
-            UIColor(expectedColor).cgColor.components,
-            "Peach should get charcoal text for readability"
-        )
-    }
-
-    func test_contrastTextColor_darkPurpleFromSplurgePalette_returnsOffWhiteText() {
-        // Given - Darker purple from Splurge wheel (#5B2C6F)
-        let darkPurple = Color(hex: "5B2C6F")
-
-        // When
-        let textColor = darkPurple.contrastTextColor
-
-        // Then
-        let expectedColor = Color.theme.textSecondary
-        XCTAssertEqual(
-            UIColor(textColor).cgColor.components,
-            UIColor(expectedColor).cgColor.components,
-            "Dark purple should get off-white text for readability"
-        )
+            XCTAssertEqual(
+                textUIColor.cgColor.components,
+                offWhiteComponents,
+                "\(testCase.description) should get off-white text"
+            )
+        }
     }
 
     // MARK: - Edge Cases & Validation Tests
 
-    func test_relativeLuminance_allWheelPaletteColors_areWithinValidRange() {
-        // Given - All colors from all three palettes
+    func test_relativeLuminance_andTextColor_comprehensiveValidation() {
+        // Single comprehensive test combining multiple edge cases
         let allColors = Color.theme.aestheticWheelColors +
                        Color.theme.splurgeWheelColors +
                        Color.theme.standardWheelColors
 
-        // When & Then
+        // Validate luminance ranges for all palette colors
         for color in allColors {
             let luminance = color.relativeLuminance
             XCTAssertGreaterThanOrEqual(luminance, 0.0, "Luminance should be >= 0.0")
             XCTAssertLessThanOrEqual(luminance, 1.0, "Luminance should be <= 1.0")
         }
-    }
 
-    func test_contrastTextColor_isAlwaysEitherCharcoalOrOffWhite() {
-        // Given - Sample colors across the luminance spectrum
+        // Validate text color selection across spectrum in single test
         let testColors = [
-            Color.white,
-            Color(hex: "F0F0F0"),
-            Color(hex: "CCCCCC"),
-            Color(hex: "808080"),
-            Color(hex: "555555"),
-            Color(hex: "333333"),
-            Color.black
+            Color.white, Color(hex: "F0F0F0"), Color(hex: "CCCCCC"),
+            Color(hex: "808080"), Color(hex: "555555"), Color(hex: "333333"), Color.black
         ]
 
-        let charcoal = UIColor(Color.theme.textPrimary)
-        let offWhite = UIColor(Color.theme.textSecondary)
-
-        // When & Then
         for color in testColors {
             let textColor = UIColor(color.contrastTextColor)
-            let isCharcoal = textColor.cgColor.components == charcoal.cgColor.components
-            let isOffWhite = textColor.cgColor.components == offWhite.cgColor.components
+            let isCharcoal = textColor.cgColor.components == charcoalComponents
+            let isOffWhite = textColor.cgColor.components == offWhiteComponents
 
             XCTAssertTrue(
                 isCharcoal || isOffWhite,
-                "Text color should always be either charcoal or off-white, got \(textColor)"
+                "Color should select either charcoal or off-white"
             )
         }
-    }
 
-    func test_contrastTextColor_atThresholdBoundary_selectsCorrectColor() {
-        // Given - A color near the 0.5 luminance threshold
-        // RGB(186, 186, 186) has luminance very close to 0.5
+        // Validate theme background has expected brightness
+        let bgLuminance = Color.theme.background.relativeLuminance
+        XCTAssertGreaterThan(bgLuminance, 0.7, "Theme background should be light")
+
+        // Validate threshold boundary behavior
         let nearThreshold = Color(hex: "BABABA")
+        let thresholdLuminance = nearThreshold.relativeLuminance
+        let thresholdTextColor = UIColor(nearThreshold.contrastTextColor)
 
-        // When
-        let textColor = nearThreshold.contrastTextColor
-        let luminance = nearThreshold.relativeLuminance
-
-        // Then
-        if luminance > 0.5 {
+        if thresholdLuminance > 0.5 {
             XCTAssertEqual(
-                UIColor(textColor).cgColor.components,
-                UIColor(Color.theme.textPrimary).cgColor.components,
-                "Luminance slightly above 0.5 should get charcoal text"
+                thresholdTextColor.cgColor.components,
+                charcoalComponents,
+                "Luminance above 0.5 should get charcoal"
             )
         } else {
             XCTAssertEqual(
-                UIColor(textColor).cgColor.components,
-                UIColor(Color.theme.textSecondary).cgColor.components,
-                "Luminance at or below 0.5 should get off-white text"
+                thresholdTextColor.cgColor.components,
+                offWhiteComponents,
+                "Luminance at/below 0.5 should get off-white"
             )
         }
-    }
-
-    func test_relativeLuminance_withThemeBackground_returnsExpectedValue() {
-        // Given - The app's main background color
-        let background = Color.theme.background
-
-        // When
-        let luminance = background.relativeLuminance
-
-        // Then - Should be a light color (high luminance)
-        XCTAssertGreaterThan(luminance, 0.7, "Theme background should have high luminance")
     }
 }
