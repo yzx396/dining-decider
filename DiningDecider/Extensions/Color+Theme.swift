@@ -39,6 +39,7 @@ struct ThemeColors {
     let title = Color(hex: "5E5B52")
     let label = Color(hex: "999999")
     let textPrimary = Color(hex: "333333")
+    let textSecondary = Color(hex: "FAFAFA")  // Off-white for dark backgrounds
 
     // Interactive
     let primaryButton = Color(hex: "C8A299")
@@ -85,4 +86,66 @@ struct ThemeColors {
         Color(hex: "D8DCD6"),  // Light gray
         Color(hex: "C8A299")   // Warm gray
     ]
+}
+
+// MARK: - Luminance & Contrast
+
+extension Color {
+    /// Calculates the relative luminance of a color using the WCAG formula.
+    ///
+    /// Relative luminance is the relative brightness of any point in a colorspace,
+    /// normalized to 0 for darkest black and 1 for lightest white.
+    ///
+    /// - Returns: A value between 0.0 (black) and 1.0 (white)
+    var relativeLuminance: Double {
+        guard let components = extractRGBComponents() else {
+            return 0.0  // Default to dark if extraction fails
+        }
+
+        // Linearize sRGB components (gamma correction)
+        let linearize: (Double) -> Double = { component in
+            if component <= 0.03928 {
+                return component / 12.92
+            } else {
+                return pow((component + 0.055) / 1.055, 2.4)
+            }
+        }
+
+        let r = linearize(components.red)
+        let g = linearize(components.green)
+        let b = linearize(components.blue)
+
+        // Apply WCAG relative luminance formula
+        return (0.2126 * r) + (0.7152 * g) + (0.0722 * b)
+    }
+
+    /// Returns the optimal text color (charcoal or off-white) for this background color.
+    ///
+    /// Uses WCAG relative luminance to determine which text color provides better contrast:
+    /// - Light backgrounds (luminance > 0.5) get charcoal text (#333333)
+    /// - Dark backgrounds (luminance ≤ 0.5) get off-white text (#FAFAFA)
+    ///
+    /// - Returns: Either `Color.theme.textPrimary` or `Color.theme.textSecondary`
+    var contrastTextColor: Color {
+        return relativeLuminance > 0.5 ? Color.theme.textPrimary : Color.theme.textSecondary
+    }
+
+    /// Extracts RGB components from a SwiftUI Color by converting to UIColor.
+    ///
+    /// - Returns: A tuple containing red, green, and blue components (0.0-1.0), or nil if extraction fails
+    private func extractRGBComponents() -> (red: Double, green: Double, blue: Double)? {
+        let uiColor = UIColor(self)
+
+        var red: CGFloat = 0
+        var green: CGFloat = 0
+        var blue: CGFloat = 0
+        var alpha: CGFloat = 0
+
+        // Extract RGB components using UIColor
+        guard uiColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha) else {
+            return nil
+        }
+
+        return (red: Double(red), green: Double(green), blue: Double(blue))
+    }
 }

@@ -73,13 +73,13 @@ struct SpinningWheelView: View {
                     .fill(sector.color)
 
                     // Sector label
-                    sectorLabel(sector.label, at: index, sectorAngle: sectorAngle)
+                    sectorLabel(sector.label, color: sector.color, at: index, sectorAngle: sectorAngle)
                 }
             }
         }
     }
 
-    private func sectorLabel(_ text: String, at index: Int, sectorAngle: Double) -> some View {
+    private func sectorLabel(_ text: String, color: Color, at index: Int, sectorAngle: Double) -> some View {
         GeometryReader { geometry in
             let size = min(geometry.size.width, geometry.size.height)
             let radius = size / 2 * 0.65
@@ -88,7 +88,7 @@ struct SpinningWheelView: View {
             Text(text)
                 .font(.caption)
                 .fontWeight(.semibold)
-                .foregroundColor(.white)
+                .foregroundColor(color.contrastTextColor)
                 .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
                 .rotationEffect(.degrees(midAngle + 90))
                 .position(

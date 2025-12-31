@@ -29,9 +29,22 @@
 		2F6C46962F0507CC00482DD3 /* DiningDeciderUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DiningDeciderUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		2F594EDA2F05809F0097428B /* Exceptions for "DiningDecider" folder in "DiningDecider" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 2F6C467E2F0507CB00482DD3 /* DiningDecider */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		2F6C46812F0507CB00482DD3 /* DiningDecider */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				2F594EDA2F05809F0097428B /* Exceptions for "DiningDecider" folder in "DiningDecider" target */,
+			);
 			path = DiningDecider;
 			sourceTree = "<group>";
 		};
