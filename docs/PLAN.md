@@ -175,39 +175,39 @@ cardPadding:    20pt
 ### Epic 1: Core Spinning Experience
 | ID | Story | Priority |
 |----|-------|----------|
-| S1 | As a user, I want to spin a wheel so that I get a random dining category | P0 |
-| S2 | As a user, I want to drag the wheel to spin it so the interaction feels physical and fun | P0 |
-| S3 | As a user, I want to see restaurant recommendations after spinning so I know where to eat | P0 |
-| S4 | As a user, I want haptic feedback when spinning so the experience feels tactile | P1 |
+| CORE-01 | As a user, I want to spin a wheel so that I get a random dining category | P0 |
+| CORE-02 | As a user, I want to drag the wheel to spin it so the interaction feels physical and fun | P0 |
+| CORE-03 | As a user, I want to see restaurant recommendations after spinning so I know where to eat | P0 |
+| CORE-04 | As a user, I want haptic feedback when spinning so the experience feels tactile | P1 |
 
 ### Epic 2: Location Awareness
 | ID | Story | Priority |
 |----|-------|----------|
-| S5 | As a user, I want results based on my current location so restaurants are nearby | P0 |
-| S6 | As a user, I want to enter a location manually so I can plan for trips or if I deny location access | P0 |
-| S7 | As a user, I want to set a search radius so I control how far I'm willing to travel | P1 |
+| LOC-01 | As a user, I want results based on my current location so restaurants are nearby | P0 |
+| LOC-02 | As a user, I want to enter a location manually so I can plan for trips or if I deny location access | P0 |
+| LOC-03 | As a user, I want to set a search radius so I control how far I'm willing to travel | P1 |
 
 ### Epic 3: Personalization
 | ID | Story | Priority |
 |----|-------|----------|
-| S8 | As a user, I want to select a "vibe" so recommendations match my mood/occasion | P1 |
-| S9 | As a user, I want to set my party size so I can see estimated total cost | P1 |
-| S10 | As a user, I want the wheel categories to change based on vibe so options are relevant | P1 |
+| PERS-01 | As a user, I want to select a "vibe" so recommendations match my mood/occasion | P1 |
+| PERS-02 | As a user, I want to set my party size so I can see estimated total cost | P1 |
+| PERS-03 | As a user, I want the wheel categories to change based on vibe so options are relevant | P1 |
 
 ### Epic 4: Restaurant Details
 | ID | Story | Priority |
 |----|-------|----------|
-| S11 | As a user, I want to see restaurant name and description so I can evaluate the option | P0 |
-| S12 | As a user, I want to see pricing info so I know what to expect | P1 |
-| S13 | As a user, I want to see parking info so I can plan my arrival | P2 |
-| S14 | As a user, I want to open the restaurant in Maps so I can navigate there | P0 |
+| REST-01 | As a user, I want to see restaurant name and description so I can evaluate the option | P0 |
+| REST-02 | As a user, I want to see pricing info so I know what to expect | P1 |
+| REST-03 | As a user, I want to see parking info so I can plan my arrival | P2 |
+| REST-04 | As a user, I want to open the restaurant in Maps so I can navigate there | P0 |
 
 ### Epic 5: Polish & Delight
 | ID | Story | Priority |
 |----|-------|----------|
-| S15 | As a user, I want smooth animations so the app feels premium | P1 |
-| S16 | As a user, I want the app to support dark mode so it matches my system preference | P2 |
-| S17 | As a user, I want to spin again easily so I can get new options | P1 |
+| POL-01 | As a user, I want smooth animations so the app feels premium | P1 |
+| POL-02 | As a user, I want the app to support dark mode so it matches my system preference | P2 |
+| POL-03 | As a user, I want to spin again easily so I can get new options | P1 |
 
 ---
 
@@ -309,7 +309,7 @@ let mockRestaurants = [
 ## Vertical Slices
 
 ### Slice 1: Draggable Wheel with Momentum
-**Stories**: S1, S2
+**Stories**: CORE-01, CORE-02
 
 | Layer | Implementation |
 |-------|----------------|
@@ -342,7 +342,7 @@ Utilities/WheelPhysics.swift              (create)
 ---
 
 ### Slice 2: Real Categories & Restaurant Data
-**Stories**: S3, S11
+**Stories**: CORE-03, REST-01
 
 | Layer | Implementation |
 |-------|----------------|
@@ -378,7 +378,7 @@ Utilities/WheelMath.swift                 (create)
 ---
 
 ### Slice 3: Current Location + Controls Card
-**Stories**: S5
+**Stories**: LOC-01
 
 | Layer | Implementation |
 |-------|----------------|
@@ -414,7 +414,7 @@ Info.plist                                (add location usage description)
 ---
 
 ### Slice 4: Manual Location Entry
-**Stories**: S6
+**Stories**: LOC-02
 
 | Layer | Implementation |
 |-------|----------------|
@@ -448,7 +448,7 @@ Services/GeocodingService.swift           (create)
 ---
 
 ### Slice 5: Search Radius
-**Stories**: S7
+**Stories**: LOC-03
 
 | Layer | Implementation |
 |-------|----------------|
@@ -481,7 +481,7 @@ ViewModels/DiningViewModel.swift          (update)
 ---
 
 ### Slice 6: Vibe Modes
-**Stories**: S8, S10
+**Stories**: PERS-01, PERS-03
 
 | Layer | Implementation |
 |-------|----------------|
@@ -521,7 +521,7 @@ Models/VibeMode.swift                     (create)
 ---
 
 ### Slice 7: Party Size & Pricing
-**Stories**: S9, S12
+**Stories**: PERS-02, REST-02
 
 | Layer | Implementation |
 |-------|----------------|
@@ -555,7 +555,7 @@ Views/ResultsView.swift                   (update)
 ---
 
 ### Slice 8: Maps Integration + Restaurant Cards
-**Stories**: S14
+**Stories**: REST-04
 
 | Layer | Implementation |
 |-------|----------------|
@@ -589,7 +589,7 @@ Views/ResultsView.swift                   (update)
 ---
 
 ### Slice 9: Haptic Feedback
-**Stories**: S4
+**Stories**: CORE-04
 
 | Layer | Implementation |
 |-------|----------------|
@@ -618,7 +618,7 @@ Views/Components/SpinningWheelView.swift  (update)
 ---
 
 ### Slice 10: Parking Info + Full Card Design
-**Stories**: S13
+**Stories**: REST-03
 
 | Layer | Implementation |
 |-------|----------------|
@@ -650,7 +650,7 @@ Views/Components/RestaurantCard.swift     (update)
 ---
 
 ### Slice 11: Dark Mode
-**Stories**: S16
+**Stories**: POL-02
 
 | Layer | Implementation |
 |-------|----------------|
@@ -685,7 +685,7 @@ Extensions/Color+Theme.swift              (update to use asset colors)
 ---
 
 ### Slice 12: Spin Again Flow + CTA Buttons
-**Stories**: S17
+**Stories**: POL-03
 
 | Layer | Implementation |
 |-------|----------------|
@@ -781,6 +781,13 @@ Week 4
 - [ ] Code follows project structure
 - [ ] Committed with descriptive message
 
+### Testing (TDD Required)
+- [ ] Tests written BEFORE implementation
+- [ ] All tests pass
+- [ ] ViewModel tests cover all public methods
+- [ ] Utility functions have unit tests
+- [ ] Services use protocol mocks
+
 ### Design
 - [ ] All design acceptance criteria met
 - [ ] Visually compare to reference screenshots (where applicable)
@@ -789,6 +796,11 @@ Week 4
 - [ ] Spacing is consistent (4pt grid)
 - [ ] Tested in both light and dark mode (after Slice 11)
 - [ ] No visual regressions in other screens
+
+### Accessibility
+- [ ] VoiceOver labels on interactive elements
+- [ ] Sufficient color contrast
+- [ ] Touch targets minimum 44pt
 
 ---
 
@@ -901,3 +913,372 @@ Phase 4 (Polish):
 | Location acquisition | < 3 seconds |
 | Geocoding response | < 2 seconds |
 | Results display | < 500ms after spin ends |
+
+---
+
+## Testing Examples
+
+> **TDD is mandatory**: Write tests BEFORE implementation. Red → Green → Refactor.
+
+### Protocol Pattern for Testability
+
+All services should have protocols to enable mocking in tests:
+
+```swift
+// MARK: - Protocol
+protocol RestaurantLoading {
+    func restaurants(for category: String) throws -> [Restaurant]
+    var allCategories: [String] { get }
+}
+
+// MARK: - Production Implementation
+final class RestaurantLoader: RestaurantLoading {
+    private let restaurants: [String: [Restaurant]]
+
+    init(bundle: Bundle = .main) throws {
+        // Load from JSON...
+    }
+
+    func restaurants(for category: String) throws -> [Restaurant] {
+        guard let list = restaurants[category] else {
+            throw RestaurantLoaderError.categoryNotFound(category)
+        }
+        return list
+    }
+
+    var allCategories: [String] {
+        Array(restaurants.keys)
+    }
+}
+
+// MARK: - Mock for Testing
+final class MockRestaurantLoader: RestaurantLoading {
+    var mockRestaurants: [String: [Restaurant]] = [:]
+    var shouldThrowError: RestaurantLoaderError?
+
+    func restaurants(for category: String) throws -> [Restaurant] {
+        if let error = shouldThrowError { throw error }
+        return mockRestaurants[category] ?? []
+    }
+
+    var allCategories: [String] {
+        Array(mockRestaurants.keys)
+    }
+}
+```
+
+### Example: WheelMath Tests
+
+```swift
+// WheelMathTests.swift
+import XCTest
+@testable import DiningDecider
+
+final class WheelMathTests: XCTestCase {
+
+    func test_landingSector_withZeroRotation_returnsFirstSector() {
+        // Given
+        let sectorCount = 8
+        let rotation = 0.0
+
+        // When
+        let index = WheelMath.landingSector(rotation: rotation, sectorCount: sectorCount)
+
+        // Then
+        XCTAssertEqual(index, 0)
+    }
+
+    func test_landingSector_withFullRotation_returnsFirstSector() {
+        // Given
+        let sectorCount = 8
+        let rotation = 360.0
+
+        // When
+        let index = WheelMath.landingSector(rotation: rotation, sectorCount: sectorCount)
+
+        // Then
+        XCTAssertEqual(index, 0)
+    }
+
+    func test_landingSector_withPartialRotation_returnsCorrectSector() {
+        // Given: 8 sectors, each 45 degrees
+        let sectorCount = 8
+        let rotation = 90.0  // Should land on sector 2
+
+        // When
+        let index = WheelMath.landingSector(rotation: rotation, sectorCount: sectorCount)
+
+        // Then
+        XCTAssertEqual(index, 2)
+    }
+
+    func test_angularVelocity_calculatesFromDragDistance() {
+        // Given
+        let startAngle = 0.0
+        let endAngle = Double.pi / 2  // 90 degrees
+        let duration = 0.1  // seconds
+
+        // When
+        let velocity = WheelMath.angularVelocity(
+            startAngle: startAngle,
+            endAngle: endAngle,
+            duration: duration
+        )
+
+        // Then: velocity = angle / time = (π/2) / 0.1 ≈ 15.7 rad/s
+        XCTAssertEqual(velocity, Double.pi / 2 / 0.1, accuracy: 0.01)
+    }
+}
+```
+
+### Example: ViewModel Tests
+
+```swift
+// DiningViewModelTests.swift
+import XCTest
+@testable import DiningDecider
+
+final class DiningViewModelTests: XCTestCase {
+
+    var sut: DiningViewModel!
+    var mockLoader: MockRestaurantLoader!
+    var mockLocation: MockLocationProvider!
+
+    override func setUp() {
+        super.setUp()
+        mockLoader = MockRestaurantLoader()
+        mockLocation = MockLocationProvider()
+        sut = DiningViewModel(
+            restaurantLoader: mockLoader,
+            locationProvider: mockLocation
+        )
+    }
+
+    override func tearDown() {
+        sut = nil
+        mockLoader = nil
+        mockLocation = nil
+        super.tearDown()
+    }
+
+    // MARK: - Spin Tests
+
+    func test_spin_setsIsSpinningToTrue() {
+        // When
+        sut.spin()
+
+        // Then
+        XCTAssertTrue(sut.isSpinning)
+    }
+
+    func test_spinComplete_loadsRestaurantsForLandedCategory() {
+        // Given
+        let expected = [Restaurant.mock(name: "Test Restaurant")]
+        mockLoader.mockRestaurants["Italian"] = expected
+
+        // When
+        sut.spinComplete(landedCategory: "Italian")
+
+        // Then
+        XCTAssertEqual(sut.results, expected)
+        XCTAssertFalse(sut.isSpinning)
+        XCTAssertTrue(sut.showResults)
+    }
+
+    func test_spinComplete_withNoRestaurants_showsEmptyState() {
+        // Given
+        mockLoader.mockRestaurants["Italian"] = []
+
+        // When
+        sut.spinComplete(landedCategory: "Italian")
+
+        // Then
+        XCTAssertTrue(sut.results.isEmpty)
+        XCTAssertTrue(sut.showResults)
+    }
+
+    // MARK: - Vibe Tests
+
+    func test_selectVibe_updatesCurrentVibe() {
+        // When
+        sut.selectVibe(.splurge)
+
+        // Then
+        XCTAssertEqual(sut.currentVibe, .splurge)
+    }
+
+    func test_selectVibe_updatesWheelCategories() {
+        // When
+        sut.selectVibe(.splurge)
+
+        // Then
+        XCTAssertEqual(sut.wheelCategories, VibeMode.splurge.categories)
+    }
+
+    // MARK: - Party Size Tests
+
+    func test_incrementPartySize_increasesCount() {
+        // Given
+        sut.partySize = 2
+
+        // When
+        sut.incrementPartySize()
+
+        // Then
+        XCTAssertEqual(sut.partySize, 3)
+    }
+
+    func test_incrementPartySize_atMax_doesNotExceedMax() {
+        // Given
+        sut.partySize = 20
+
+        // When
+        sut.incrementPartySize()
+
+        // Then
+        XCTAssertEqual(sut.partySize, 20)
+    }
+}
+```
+
+### Example: Location Provider Mock
+
+```swift
+// MockLocationProvider.swift (in Tests target)
+import CoreLocation
+@testable import DiningDecider
+
+final class MockLocationProvider: LocationProviding {
+    var currentLocation: CLLocationCoordinate2D?
+    var authorizationStatus: CLAuthorizationStatus = .notDetermined
+    var requestPermissionCalled = false
+
+    func requestPermission() {
+        requestPermissionCalled = true
+    }
+}
+
+// Usage in tests
+func test_filtersByLocation_whenLocationAvailable() {
+    // Given
+    mockLocation.currentLocation = CLLocationCoordinate2D(
+        latitude: 37.7749,
+        longitude: -122.4194
+    )
+    mockLocation.authorizationStatus = .authorizedWhenInUse
+
+    let nearbyRestaurant = Restaurant.mock(lat: 37.78, lng: -122.42)
+    let farRestaurant = Restaurant.mock(lat: 40.71, lng: -74.00)
+    mockLoader.mockRestaurants["Italian"] = [nearbyRestaurant, farRestaurant]
+
+    // When
+    sut.spinComplete(landedCategory: "Italian")
+
+    // Then
+    XCTAssertEqual(sut.results.count, 1)
+    XCTAssertEqual(sut.results.first?.name, nearbyRestaurant.name)
+}
+```
+
+### Example: Distance Calculator Tests
+
+```swift
+// DistanceCalculatorTests.swift
+import XCTest
+import CoreLocation
+@testable import DiningDecider
+
+final class DistanceCalculatorTests: XCTestCase {
+
+    func test_distance_betweenSamePoint_isZero() {
+        // Given
+        let point = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
+
+        // When
+        let distance = DistanceCalculator.distanceInMiles(from: point, to: point)
+
+        // Then
+        XCTAssertEqual(distance, 0, accuracy: 0.001)
+    }
+
+    func test_distance_sfToOakland_isApproximately10Miles() {
+        // Given
+        let sf = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
+        let oakland = CLLocationCoordinate2D(latitude: 37.8044, longitude: -122.2712)
+
+        // When
+        let distance = DistanceCalculator.distanceInMiles(from: sf, to: oakland)
+
+        // Then: SF to Oakland is roughly 10 miles
+        XCTAssertEqual(distance, 10, accuracy: 2)
+    }
+
+    func test_isWithinRadius_returnsTrue_whenInRange() {
+        // Given
+        let center = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
+        let nearby = CLLocationCoordinate2D(latitude: 37.78, longitude: -122.42)
+
+        // When
+        let isWithin = DistanceCalculator.isWithinRadius(
+            point: nearby,
+            center: center,
+            radiusMiles: 5
+        )
+
+        // Then
+        XCTAssertTrue(isWithin)
+    }
+}
+```
+
+### Test Helpers
+
+```swift
+// Restaurant+Mock.swift (in Tests target)
+extension Restaurant {
+    static func mock(
+        id: UUID = UUID(),
+        name: String = "Test Restaurant",
+        lat: Double = 37.7749,
+        lng: Double = -122.4194,
+        priceLevel: Int = 2,
+        averageCost: Int = 25,
+        description: String = "A test restaurant",
+        parking: String = "Street parking",
+        mapQuery: String = "Test Restaurant SF"
+    ) -> Restaurant {
+        Restaurant(
+            id: id,
+            name: name,
+            lat: lat,
+            lng: lng,
+            priceLevel: priceLevel,
+            averageCost: averageCost,
+            description: description,
+            parking: parking,
+            mapQuery: mapQuery
+        )
+    }
+}
+```
+
+### Test File Structure
+
+```
+DiningDeciderTests/
+├── Mocks/
+│   ├── MockRestaurantLoader.swift
+│   ├── MockLocationProvider.swift
+│   └── Restaurant+Mock.swift
+├── Models/
+│   └── RestaurantTests.swift
+├── ViewModels/
+│   └── DiningViewModelTests.swift
+├── Utilities/
+│   ├── WheelMathTests.swift
+│   ├── WheelPhysicsTests.swift
+│   └── DistanceCalculatorTests.swift
+└── Services/
+    ├── RestaurantLoaderTests.swift
+    └── GeocodingServiceTests.swift
+```

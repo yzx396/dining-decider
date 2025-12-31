@@ -235,15 +235,35 @@ enum VibeMode: String, CaseIterable {
     case standard
 }
 
-struct Restaurant: Identifiable {
-    let id = UUID()
+struct Restaurant: Identifiable, Codable {
+    let id: UUID
     let name: String
-    let coordinate: CLLocationCoordinate2D
+    let lat: Double
+    let lng: Double
     let priceLevel: Int          // 1-4
     let averageCost: Int         // Per person
     let description: String
     let parking: String
     let mapQuery: String
+
+    var coordinate: CLLocationCoordinate2D {
+        CLLocationCoordinate2D(latitude: lat, longitude: lng)
+    }
+
+    // For creating in code (tests, previews)
+    init(id: UUID = UUID(), name: String, lat: Double, lng: Double,
+         priceLevel: Int, averageCost: Int, description: String,
+         parking: String, mapQuery: String) {
+        self.id = id
+        self.name = name
+        self.lat = lat
+        self.lng = lng
+        self.priceLevel = priceLevel
+        self.averageCost = averageCost
+        self.description = description
+        self.parking = parking
+        self.mapQuery = mapQuery
+    }
 }
 
 struct WheelSector: Identifiable {
@@ -323,11 +343,12 @@ DiningDecider/
   "categories": {
     "Rooftop": [
       {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
         "name": "RH Rooftop",
         "lat": 37.7855,
         "lng": -122.4064,
         "priceLevel": 3,
-        "avgCost": 65,
+        "averageCost": 65,
         "description": "Stunning views with upscale American fare",
         "parking": "Valet available, street parking nearby",
         "mapQuery": "RH Rooftop San Francisco"
@@ -340,6 +361,8 @@ DiningDecider/
 }
 ```
 
+> **Note**: Generate UUIDs for each restaurant. Use `uuidgen` in terminal or online generator.
+
 ### Data Models
 
 ```swift
@@ -349,39 +372,59 @@ struct RestaurantData: Codable {
     let categories: [String: [Restaurant]]
 }
 
-struct Restaurant: Codable, Identifiable {
-    var id: String { name }
-    let name: String
-    let lat: Double
-    let lng: Double
-    let priceLevel: Int      // 1-4
-    let avgCost: Int         // per person in USD
-    let description: String
-    let parking: String
-    let mapQuery: String
-
-    var coordinate: CLLocationCoordinate2D {
-        CLLocationCoordinate2D(latitude: lat, longitude: lng)
-    }
-}
+// Restaurant struct defined in Models section above
+// Uses UUID for id, Codable for JSON decoding
 ```
 
 ### RestaurantLoader
 
 ```swift
-final class RestaurantLoader {
+// Error types for clear failure handling
+enum RestaurantLoaderError: Error, LocalizedError {
+    case fileNotFound
+    case decodingFailed(Error)
+    case categoryNotFound(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .fileNotFound:
+            return "Restaurant data file not found in bundle"
+        case .decodingFailed(let error):
+            return "Failed to decode restaurant data: \(error.localizedDescription)"
+        case .categoryNotFound(let category):
+            return "No restaurants found for category: \(category)"
+        }
+    }
+}
+
+// Protocol for testability
+protocol RestaurantLoading {
+    func restaurants(for category: String) -> [Restaurant]
+    var allCategories: [String] { get }
+}
+
+final class RestaurantLoader: RestaurantLoading {
     static let shared = RestaurantLoader()
 
     private(set) var data: RestaurantData?
+    private(set) var loadError: RestaurantLoaderError?
 
     init() {
         loadBundled()
     }
 
     private func loadBundled() {
-        guard let url = Bundle.main.url(forResource: "restaurants", withExtension: "json"),
-              let jsonData = try? Data(contentsOf: url) else { return }
-        data = try? JSONDecoder().decode(RestaurantData.self, from: jsonData)
+        guard let url = Bundle.main.url(forResource: "restaurants", withExtension: "json") else {
+            loadError = .fileNotFound
+            return
+        }
+
+        do {
+            let jsonData = try Data(contentsOf: url)
+            data = try JSONDecoder().decode(RestaurantData.self, from: jsonData)
+        } catch {
+            loadError = .decodingFailed(error)
+        }
     }
 
     func restaurants(for category: String) -> [Restaurant] {
@@ -485,20 +528,28 @@ struct SpinningWheelView: View {
     @State private var angularVelocity: Double = 0
     @State private var lastAngle: Double = 0
     @State private var isSpinning: Bool = false
+    @State private var wheelSize: CGSize = .zero
 
     var body: some View {
-        ZStack {
-            WheelContent()
-                .rotationEffect(.degrees(rotation))
-                .gesture(dragGesture)
+        GeometryReader { geometry in
+            ZStack {
+                WheelContent()
+                    .rotationEffect(.degrees(rotation))
+                    .gesture(dragGesture(in: geometry.size))
+            }
+            .onAppear {
+                wheelSize = geometry.size
+                startDecelerationTimer()
+            }
         }
-        .onAppear { startDecelerationTimer() }
     }
 
-    var dragGesture: some Gesture {
-        DragGesture()
+    // Use GeometryReader size for accurate center calculation
+    func dragGesture(in size: CGSize) -> some Gesture {
+        let center = CGPoint(x: size.width / 2, y: size.height / 2)
+
+        return DragGesture()
             .onChanged { value in
-                let center = CGPoint(x: 175, y: 175)  // wheel center
                 let currentAngle = atan2(value.location.y - center.y,
                                          value.location.x - center.x)
                 let angleDelta = (currentAngle - lastAngle) * 180 / .pi
@@ -532,6 +583,8 @@ struct SpinningWheelView: View {
     }
 }
 ```
+
+> **Note**: Always use `GeometryReader` to get actual view dimensions. Never hardcode sizes.
 
 ### Velocity to Spin Duration
 

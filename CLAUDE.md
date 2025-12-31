@@ -30,6 +30,28 @@ Dining Decider is a native iOS app (SwiftUI, iOS 17+) that helps users decide wh
 - **Location**: CoreLocation + MapKit geocoding
 - **Animation**: SwiftUI animations with gesture-based physics
 
+## Getting Started (New Project Setup)
+
+1. **Create Xcode project**: File → New → Project → iOS App
+   - Product Name: `DiningDecider`
+   - Interface: SwiftUI
+   - Language: Swift
+   - Storage: None
+   - Include Tests: Yes
+
+2. **Add Location capability**:
+   - Select project → Signing & Capabilities → + Capability → Location
+
+3. **Configure Info.plist** (add these keys):
+   ```
+   NSLocationWhenInUseUsageDescription = "To find restaurants near you"
+   ```
+
+4. **Add restaurants.json to bundle**:
+   - Drag file into Xcode project navigator
+   - Ensure "Copy items if needed" is checked
+   - Target membership: DiningDecider
+
 ## Build Commands
 
 ```bash
@@ -41,6 +63,9 @@ xcodebuild -scheme DiningDecider -destination 'platform=iOS Simulator,name=iPhon
 
 # Run tests
 xcodebuild test -scheme DiningDecider -destination 'platform=iOS Simulator,name=iPhone 15 Pro'
+
+# Lint code (install: brew install swiftlint)
+swiftlint
 ```
 
 ## Project Structure
@@ -77,6 +102,66 @@ Drag gesture captures angular velocity → release triggers momentum spin → Ti
 
 ### Location Modes
 Two modes: `.current(CLLocationCoordinate2D)` uses GPS, `.manual(String)` geocodes user-entered address. Falls back to manual if location permission denied.
+
+## Protocols for Testability
+
+All services must have protocols for dependency injection:
+
+```swift
+// Protocol
+protocol LocationProviding {
+    var currentLocation: CLLocationCoordinate2D? { get }
+    var authorizationStatus: CLAuthorizationStatus { get }
+    func requestPermission()
+}
+
+// Implementation
+final class LocationManager: NSObject, LocationProviding, CLLocationManagerDelegate { ... }
+
+// Mock for testing
+final class MockLocationProvider: LocationProviding {
+    var currentLocation: CLLocationCoordinate2D? = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
+    var authorizationStatus: CLAuthorizationStatus = .authorizedWhenInUse
+    func requestPermission() { }
+}
+```
+
+Apply same pattern to: `RestaurantLoading`, `GeocodingService`, `HapticProviding`.
+
+## SwiftUI Quick Reference
+
+### Property Wrappers
+- `@State` - Local view state (value types)
+- `@Observable` - Shared state class (iOS 17+)
+- `@Environment` - System values (\.colorScheme, \.dismiss)
+- `@Binding` - Two-way connection to parent's state
+
+### Common Patterns
+```swift
+.sheet(isPresented: $showSheet) { }     // Modal presentation
+.onAppear { }                            // Run on view appear
+.task { }                                // Async work on appear
+GeometryReader { geo in }                // Get parent size
+```
+
+### Gesture Basics
+```swift
+.gesture(DragGesture()
+    .onChanged { value in }              // During drag
+    .onEnded { value in }                // On release
+)
+```
+
+## Accessibility
+
+All interactive components must support VoiceOver:
+
+```swift
+WheelView()
+    .accessibilityLabel("Spinning wheel")
+    .accessibilityHint("Swipe to spin and get a restaurant recommendation")
+    .accessibilityAddTraits(.allowsDirectInteraction)
+```
 
 ## Design System
 
