@@ -1,6 +1,26 @@
 import Foundation
 import CoreLocation
 
+// MARK: - Price Level Tag
+
+/// Represents a price level label with emoji and text.
+struct PriceLevelTag: Equatable {
+    let emoji: String
+    let label: String
+
+    /// Formatted display string combining emoji and label.
+    var displayText: String {
+        "\(emoji) \(label)"
+    }
+
+    static let luxury = PriceLevelTag(emoji: "💎", label: "Luxury")
+    static let premium = PriceLevelTag(emoji: "✨", label: "Premium")
+    static let aesthetic = PriceLevelTag(emoji: "📸", label: "Aesthetic")
+    static let value = PriceLevelTag(emoji: "💰", label: "Value")
+}
+
+// MARK: - Restaurant
+
 struct Restaurant: Identifiable, Codable, Equatable {
     let id: UUID
     let name: String
@@ -18,6 +38,30 @@ struct Restaurant: Identifiable, Codable, Equatable {
 
     func totalCost(for partySize: Int) -> Int {
         averageCost * partySize
+    }
+
+    /// Returns the appropriate price level tag based on price level.
+    ///
+    /// - priceLevel 4: 💎 Luxury
+    /// - priceLevel 3: ✨ Premium
+    /// - priceLevel 2: 📸 Aesthetic
+    /// - priceLevel 1 or other: 💰 Value
+    var priceLevelTag: PriceLevelTag {
+        switch priceLevel {
+        case 4:
+            return .luxury
+        case 3:
+            return .premium
+        case 2:
+            return .aesthetic
+        default:
+            return .value
+        }
+    }
+
+    /// Returns true if parking information is available (non-empty, non-whitespace).
+    var hasParkingInfo: Bool {
+        !parking.trimmingCharacters(in: .whitespaces).isEmpty
     }
 }
 

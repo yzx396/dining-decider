@@ -92,4 +92,111 @@ final class RestaurantTests: XCTestCase {
         // Then
         XCTAssertEqual(total, 200)
     }
+
+    // MARK: - Price Level Tag Tests
+
+    func test_priceLevelTag_level4_returnsLuxury() {
+        // Given
+        let restaurant = makeRestaurant(priceLevel: 4)
+
+        // When
+        let tag = restaurant.priceLevelTag
+
+        // Then
+        XCTAssertEqual(tag.emoji, "💎")
+        XCTAssertEqual(tag.label, "Luxury")
+    }
+
+    func test_priceLevelTag_level3_returnsPremium() {
+        // Given
+        let restaurant = makeRestaurant(priceLevel: 3)
+
+        // When
+        let tag = restaurant.priceLevelTag
+
+        // Then
+        XCTAssertEqual(tag.emoji, "✨")
+        XCTAssertEqual(tag.label, "Premium")
+    }
+
+    func test_priceLevelTag_level2_returnsAesthetic() {
+        // Given
+        let restaurant = makeRestaurant(priceLevel: 2)
+
+        // When
+        let tag = restaurant.priceLevelTag
+
+        // Then
+        XCTAssertEqual(tag.emoji, "📸")
+        XCTAssertEqual(tag.label, "Aesthetic")
+    }
+
+    func test_priceLevelTag_level1_returnsValue() {
+        // Given
+        let restaurant = makeRestaurant(priceLevel: 1)
+
+        // When
+        let tag = restaurant.priceLevelTag
+
+        // Then
+        XCTAssertEqual(tag.emoji, "💰")
+        XCTAssertEqual(tag.label, "Value")
+    }
+
+    func test_priceLevelTag_invalidLevel_defaultsToValue() {
+        // Given
+        let restaurant = makeRestaurant(priceLevel: 0)
+
+        // When
+        let tag = restaurant.priceLevelTag
+
+        // Then
+        XCTAssertEqual(tag.emoji, "💰")
+        XCTAssertEqual(tag.label, "Value")
+    }
+
+    // MARK: - Parking Info Tests
+
+    func test_hasParkingInfo_withParking_returnsTrue() {
+        // Given
+        let restaurant = makeRestaurant(parking: "Valet available")
+
+        // Then
+        XCTAssertTrue(restaurant.hasParkingInfo)
+    }
+
+    func test_hasParkingInfo_withEmptyString_returnsFalse() {
+        // Given
+        let restaurant = makeRestaurant(parking: "")
+
+        // Then
+        XCTAssertFalse(restaurant.hasParkingInfo)
+    }
+
+    func test_hasParkingInfo_withWhitespaceOnly_returnsFalse() {
+        // Given
+        let restaurant = makeRestaurant(parking: "   ")
+
+        // Then
+        XCTAssertFalse(restaurant.hasParkingInfo)
+    }
+
+    // MARK: - Helper
+
+    private func makeRestaurant(
+        priceLevel: Int = 2,
+        parking: String = "Street parking"
+    ) -> Restaurant {
+        Restaurant(
+            id: UUID(),
+            name: "Test Restaurant",
+            lat: 37.7749,
+            lng: -122.4194,
+            priceLevel: priceLevel,
+            averageCost: 35,
+            description: "Test description",
+            parking: parking,
+            mapQuery: "Test Restaurant SF"
+        )
+    }
 }
