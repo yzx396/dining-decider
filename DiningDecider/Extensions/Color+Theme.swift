@@ -49,30 +49,40 @@ struct ThemeColors {
     let wheelBorder = Color(hex: "EAE8E1")
     let wheelCenter = Color.white
 
-    // Vibe: Aesthetic
+    // Vibe: Aesthetic (8 colors for 8 sectors)
     let vibeAesthetic = Color(hex: "D98880")
     let aestheticWheelColors: [Color] = [
-        Color(hex: "E6B0AA"),
-        Color(hex: "D98880"),
-        Color(hex: "F1948A"),
-        Color(hex: "C39BD3")
+        Color(hex: "E6B0AA"),  // Soft pink
+        Color(hex: "D98880"),  // Rose
+        Color(hex: "F1948A"),  // Coral pink
+        Color(hex: "C39BD3"),  // Lavender
+        Color(hex: "F5B7B1"),  // Light pink
+        Color(hex: "FAD7A0"),  // Peach
+        Color(hex: "E8DAEF"),  // Light purple
+        Color(hex: "D7BDE2")   // Soft purple
     ]
 
-    // Vibe: Splurge
+    // Vibe: Splurge (6 colors)
     let vibeSplurge = Color(hex: "884EA0")
     let splurgeWheelColors: [Color] = [
-        Color(hex: "884EA0"),
-        Color(hex: "AF7AC5"),
-        Color(hex: "7D3C98"),
-        Color(hex: "5B2C6F")
+        Color(hex: "884EA0"),  // Deep purple
+        Color(hex: "AF7AC5"),  // Medium purple
+        Color(hex: "7D3C98"),  // Dark purple
+        Color(hex: "5B2C6F"),  // Deeper purple
+        Color(hex: "D2B4DE"),  // Light purple
+        Color(hex: "A569BD")   // Purple
     ]
 
-    // Vibe: Standard
+    // Vibe: Standard (8 colors)
     let vibeStandard = Color(hex: "7F8C8D")
     let standardWheelColors: [Color] = [
-        Color(hex: "A4B494"),
-        Color(hex: "DCC7AA"),
-        Color(hex: "B5C0D0"),
-        Color(hex: "E4B7B2")
+        Color(hex: "A4B494"),  // Sage green
+        Color(hex: "DCC7AA"),  // Tan
+        Color(hex: "B5C0D0"),  // Blue gray
+        Color(hex: "E4B7B2"),  // Dusty rose
+        Color(hex: "C4C3D0"),  // Soft gray
+        Color(hex: "9FAEB5"),  // Steel blue
+        Color(hex: "D8DCD6"),  // Light gray
+        Color(hex: "C8A299")   // Warm gray
     ]
 }

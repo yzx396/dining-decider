@@ -1,0 +1,102 @@
+{
+  "Garden Cafe": [
+    { "name": "The Gardenia", "locs": ["SF"], "query": "The Gardenia Los Gatos", "price": 2, "aesthetic": true, "avgCost": 35, "note": "XHS Top Pick: Marble tables, greenery, perfect light.", "parking": "Public Lot nearby." },
+    { "name": "Son & Garden", "locs": ["SF"], "query": "Son & Garden", "price": 3, "aesthetic": true, "avgCost": 50, "note": "Viral \"Cloud\" cocktails and flower walls.", "parking": "Street (Valet avail)." },
+    { "name": "The Ivy", "locs": ["LA"], "query": "The Ivy Restaurant", "price": 3, "aesthetic": true, "avgCost": 80, "note": "Iconic white fence garden patio.", "parking": "Valet." },
+    { "name": "Laduree Soho", "locs": ["NYC"], "query": "Laduree Soho", "price": 3, "aesthetic": true, "avgCost": 50, "note": "Dreamy courtyard garden.", "parking": "Street." },
+    { "name": "Stable Cafe", "locs": ["SF"], "query": "Stable Cafe", "price": 2, "aesthetic": true, "avgCost": 25, "note": "Hidden garden gem in Mission.", "parking": "Street." },
+    { "name": "Openaire", "locs": ["LA"], "query": "Openaire", "price": 3, "aesthetic": true, "avgCost": 60, "note": "Greenhouse dining at the Line Hotel.", "parking": "Valet." }
+  ],
+  "Floral Brunch": [
+    { "name": "Morning Wood", "locs": ["SF"], "query": "Morning Wood", "price": 2, "aesthetic": true, "avgCost": 30, "note": "Hawaiian brunch with cute decor.", "parking": "Street." },
+    { "name": "Lulu's", "locs": ["LA"], "query": "Lulu's Restaurant", "price": 2, "aesthetic": true, "avgCost": 35, "note": "Courtyard dining vibe.", "parking": "Street." },
+    { "name": "While We Were Young", "locs": ["NYC"], "query": "While We Were Young", "price": 3, "aesthetic": true, "avgCost": 50, "note": "XHS Viral: Pink couches and flowers.", "parking": "Street." },
+    { "name": "Farmhouse Thai", "locs": ["SF"], "query": "Farmhouse Kitchen Thai", "price": 3, "aesthetic": true, "avgCost": 45, "note": "Maximalist floral decor.", "parking": "Street." }
+  ],
+  "Rooftop": [
+    { "name": "RH Rooftop", "locs": ["SF", "NYC"], "query": "RH Rooftop Restaurant", "price": 3, "aesthetic": true, "avgCost": 70, "note": "Chandeliers, glass atrium, views.", "parking": "Valet / Public Lot." },
+    { "name": "RH Palo Alto", "locs": ["SF"], "query": "RH Palo Alto Restaurant", "price": 3, "aesthetic": true, "avgCost": 75, "note": "Elegant rooftop garden vibe.", "parking": "Shopping Center Lot." },
+    { "name": "Catch LA", "locs": ["LA"], "query": "Catch LA", "price": 4, "aesthetic": true, "avgCost": 120, "note": "Open air, flowers, celeb spotting.", "parking": "Valet." },
+    { "name": "Perch", "locs": ["LA"], "query": "Perch LA", "price": 3, "aesthetic": true, "avgCost": 60, "note": "Downtown skyline views, live jazz.", "parking": "Valet ($10)." },
+    { "name": "Westlight", "locs": ["NYC"], "query": "Westlight NYC", "price": 3, "aesthetic": true, "avgCost": 50, "note": "Best sunset views of Manhattan.", "parking": "Street." },
+    { "name": "Charmaine's", "locs": ["SF"], "query": "Charmaine's Rooftop", "price": 3, "aesthetic": true, "avgCost": 45, "note": "Fire pits and chic decor.", "parking": "Valet." }
+  ],
+  "Tea Room": [
+    { "name": "The Rotunda", "locs": ["SF"], "query": "The Rotunda Neiman Marcus", "price": 3, "aesthetic": true, "avgCost": 55, "note": "Stained glass ceiling dome.", "parking": "Union Sq Garage." },
+    { "name": "Alfred Tea", "locs": ["LA"], "query": "Alfred Tea Room", "price": 2, "aesthetic": true, "avgCost": 15, "note": "All pink everything.", "parking": "Street." },
+    { "name": "Prince Tea House", "locs": ["NYC"], "query": "Prince Tea House", "price": 2, "aesthetic": true, "avgCost": 25, "note": "French country decor & crepe cakes.", "parking": "Street." },
+    { "name": "Sip Tea Room", "locs": ["SF"], "query": "Sip Tea Room", "price": 2, "aesthetic": true, "avgCost": 35, "note": "Authentic British tea vibes.", "parking": "Street." }
+  ],
+  "Minimalist": [
+    { "name": "RH Restaurant", "locs": ["SF", "NYC", "LA"], "query": "Restoration Hardware Restaurant", "price": 3, "aesthetic": true, "avgCost": 80, "note": "The ultimate beige/gold aesthetic.", "parking": "Valet." },
+    { "name": "Palm Court", "locs": ["SF"], "query": "Palm Court Restoration Hardware", "price": 3, "aesthetic": true, "avgCost": 75, "note": "Palms and fountains indoors.", "parking": "Public Lot." },
+    { "name": "Bavel", "locs": ["LA"], "query": "Bavel", "price": 3, "aesthetic": true, "avgCost": 85, "note": "Hanging plants, open fire.", "parking": "Valet." },
+    { "name": "Blue Bottle (Bradbury)", "locs": ["LA"], "query": "Blue Bottle Bradbury", "price": 1, "aesthetic": true, "avgCost": 10, "note": "Historic architecture.", "parking": "Garage." }
+  ],
+  "Patio": [
+    { "name": "A.O.C.", "locs": ["LA"], "query": "AOC Wine Bar", "price": 3, "aesthetic": true, "avgCost": 60, "note": "The gold standard for LA patios.", "parking": "Valet." },
+    { "name": "Foreign Cinema", "locs": ["SF"], "query": "Foreign Cinema", "price": 3, "aesthetic": true, "avgCost": 55, "note": "Movies projected on walls outside.", "parking": "Valet." },
+    { "name": "Pietro Nolita", "locs": ["NYC"], "query": "Pietro Nolita", "price": 2, "aesthetic": true, "avgCost": 30, "note": "The all-pink restaurant.", "parking": "Street." },
+    { "name": "Fia", "locs": ["LA"], "query": "Fia Restaurant", "price": 3, "aesthetic": true, "avgCost": 65, "note": "Hidden garden oasis.", "parking": "Valet." }
+  ],
+  "Retro Vibe": [
+    { "name": "Media Noche", "locs": ["SF"], "query": "Media Noche", "price": 2, "aesthetic": true, "avgCost": 25, "note": "Famous floor tiles and pink accents.", "parking": "Street." },
+    { "name": "Great White", "locs": ["LA"], "query": "Great White Venice", "price": 2, "aesthetic": true, "avgCost": 30, "note": "Australian beach aesthetic.", "parking": "Street." },
+    { "name": "Jack's Wife Freda", "locs": ["NYC"], "query": "Jack's Wife Freda", "price": 2, "aesthetic": true, "avgCost": 35, "note": "Cute illustrations on sugar packets.", "parking": "Street." }
+  ],
+  "Cute Bakery": [
+    { "name": "Mr. Holmes Bakehouse", "locs": ["LA", "SF"], "query": "Mr Holmes Bakehouse", "price": 2, "aesthetic": true, "avgCost": 15, "note": "Neon sign \"I got baked in SF\".", "parking": "Street." },
+    { "name": "Maman", "locs": ["NYC"], "query": "Maman Bakery", "price": 2, "aesthetic": true, "avgCost": 18, "note": "Rustic French farmhouse decor.", "parking": "Street." },
+    { "name": "B Patisserie", "locs": ["SF"], "query": "B Patisserie", "price": 2, "aesthetic": true, "avgCost": 20, "note": "Beautiful open kitchen.", "parking": "Street." }
+  ],
+  "Seafood": [
+    { "name": "Waterbar", "locs": ["SF"], "query": "Waterbar SF", "price": 4, "aesthetic": true, "avgCost": 150, "note": "Bridge view.", "parking": "Valet." },
+    { "name": "Providence", "locs": ["LA"], "query": "Providence Restaurant", "price": 4, "aesthetic": true, "avgCost": 250, "note": "Michelin Star.", "parking": "Valet." },
+    { "name": "Le Bernardin", "locs": ["NYC"], "query": "Le Bernardin", "price": 4, "aesthetic": true, "avgCost": 280, "note": "Global icon.", "parking": "Garage." }
+  ],
+  "Steakhouse": [
+    { "name": "House of Prime Rib", "locs": ["SF"], "query": "House of Prime Rib", "price": 3, "aesthetic": false, "avgCost": 70, "note": "SF Classic.", "parking": "Valet." },
+    { "name": "Mastro's Ocean Club", "locs": ["LA"], "query": "Mastro's Ocean Club", "price": 4, "aesthetic": true, "avgCost": 150, "note": "Ocean views.", "parking": "Valet." },
+    { "name": "Peter Luger", "locs": ["NYC"], "query": "Peter Luger", "price": 4, "aesthetic": false, "avgCost": 120, "note": "Cash only classic.", "parking": "Street." }
+  ],
+  "Omakase": [
+    { "name": "Nobu", "locs": ["LA", "NYC"], "query": "Nobu", "price": 4, "aesthetic": true, "avgCost": 180, "note": "Celeb hotspot.", "parking": "Valet." },
+    { "name": "Omakase SF", "locs": ["SF"], "query": "Omakase SF", "price": 4, "aesthetic": true, "avgCost": 200, "note": "Michelin starred.", "parking": "Street." }
+  ],
+  "Fine Dining": [
+    { "name": "Gary Danko", "locs": ["SF"], "query": "Gary Danko", "price": 4, "aesthetic": true, "avgCost": 170, "note": "Classic luxury.", "parking": "Valet." },
+    { "name": "Per Se", "locs": ["NYC"], "query": "Per Se", "price": 4, "aesthetic": true, "avgCost": 350, "note": "Top tier.", "parking": "Garage." }
+  ],
+  "French": [
+    { "name": "Bouchon", "locs": ["SF", "LA", "NYC"], "query": "Bouchon", "price": 3, "aesthetic": true, "avgCost": 80, "note": "Classic Bistro.", "parking": "Garage." }
+  ],
+  "Italian": [
+    { "name": "Carbone", "locs": ["NYC", "LA"], "query": "Carbone", "price": 4, "aesthetic": true, "avgCost": 150, "note": "Spicy Vodka Rigatoni.", "parking": "Valet." },
+    { "name": "Cotogna", "locs": ["SF"], "query": "Cotogna", "price": 3, "aesthetic": true, "avgCost": 75, "note": "Rustic.", "parking": "Valet." }
+  ],
+  "Hot Pot": [
+    { "name": "Haidilao", "locs": ["SF", "LA", "NYC"], "query": "Haidilao", "price": 3, "aesthetic": true, "avgCost": 70, "note": "Service king.", "parking": "Mall." }
+  ],
+  "Tea / Cafe": [
+    { "name": "Chicha San Chen", "locs": ["SF", "LA", "NYC"], "query": "Chicha San Chen", "price": 2, "aesthetic": true, "avgCost": 25, "note": "Fresh brew.", "parking": "Plaza." }
+  ],
+  "Noodles": [
+    { "name": "Marugame", "locs": ["SF", "LA", "NYC"], "query": "Marugame Udon", "price": 1, "aesthetic": false, "avgCost": 15, "note": "Cafeteria style.", "parking": "Mall." }
+  ],
+  "Dessert": [
+    { "name": "Meet Fresh", "locs": ["SF", "LA", "NYC"], "query": "Meet Fresh", "price": 1, "aesthetic": false, "avgCost": 12, "note": "Taro balls.", "parking": "Plaza." }
+  ],
+  "Dim Sum": [
+    { "name": "Yank Sing", "locs": ["SF"], "query": "Yank Sing", "price": 3, "aesthetic": false, "avgCost": 45, "note": "Premium dim sum.", "parking": "Garage." },
+    { "name": "Jing Fong", "locs": ["NYC"], "query": "Jing Fong", "price": 2, "aesthetic": false, "avgCost": 30, "note": "Classic carts.", "parking": "Street." }
+  ],
+  "Skewers": [
+    { "name": "Feng Mao", "locs": ["LA"], "query": "Feng Mao", "price": 3, "aesthetic": false, "avgCost": 60, "note": "Lamb.", "parking": "Lot." }
+  ],
+  "Korean BBQ": [
+    { "name": "Gen KBBQ", "locs": ["SF", "LA"], "query": "Gen Korean BBQ", "price": 2, "aesthetic": false, "avgCost": 35, "note": "AYCE.", "parking": "Mall." }
+  ],
+  "Bakery": [
+    { "name": "85C", "locs": ["SF", "LA", "NYC"], "query": "85C Bakery", "price": 1, "aesthetic": false, "avgCost": 6, "note": "Cheap.", "parking": "Lot." }
+  ]
+}

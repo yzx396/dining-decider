@@ -4,8 +4,20 @@ struct ContentView: View {
     @State private var rotation: Double = 0
     @State private var showResults = false
     @State private var landedCategory = "Rooftop"
+    @State private var landedRestaurants: [Restaurant] = []
 
-    private let sectors = WheelSector.skeletonSectors
+    private let sectors = WheelSector.aestheticSectors
+    private let restaurantLoader: RestaurantLoading
+
+    init() {
+        // Initialize restaurant loader, fallback to empty if file not found
+        if let loader = try? RestaurantLoader() {
+            self.restaurantLoader = loader
+        } else {
+            // Fallback for testing/development
+            self.restaurantLoader = MockRestaurantLoader()
+        }
+    }
 
     var body: some View {
         ZStack {
@@ -48,7 +60,7 @@ struct ContentView: View {
         .sheet(isPresented: $showResults) {
             ResultsView(
                 category: landedCategory,
-                restaurants: Restaurant.skeletonData,
+                restaurants: landedRestaurants,
                 onSpinAgain: {
                     showResults = false
                 }
@@ -59,7 +71,26 @@ struct ContentView: View {
 
     private func handleSpinComplete(sectorIndex: Int) {
         landedCategory = sectors[sectorIndex].label
+
+        // Get restaurants for the landed category
+        let allRestaurants = restaurantLoader.restaurants(for: landedCategory)
+
+        // Shuffle and take top 3
+        landedRestaurants = allRestaurants.shuffled().prefix(3).map { $0 }
+
         showResults = true
+    }
+}
+
+// MARK: - Mock Loader for Development/Testing
+
+private final class MockRestaurantLoader: RestaurantLoading {
+    var allCategories: [String] {
+        ["Rooftop", "Cafe"]
+    }
+
+    func restaurants(for category: String) -> [Restaurant] {
+        Restaurant.skeletonData
     }
 }
 
