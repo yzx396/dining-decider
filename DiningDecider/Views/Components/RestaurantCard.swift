@@ -2,8 +2,8 @@ import SwiftUI
 
 /// A card displaying restaurant details with a map button.
 ///
-/// Shows the restaurant name, description, pricing information,
-/// and a button to open the location in Apple Maps.
+/// Shows the restaurant name, price level tag, description, parking info,
+/// pricing information, and a button to open the location in Apple Maps.
 struct RestaurantCard: View {
     let restaurant: Restaurant
     let partySize: Int
@@ -13,8 +13,16 @@ struct RestaurantCard: View {
             // Header: Name + Map button
             headerRow
 
+            // Price level tag (💎 Luxury, ✨ Premium, etc.)
+            priceLevelTagRow
+
             // Description in quotes
             descriptionRow
+
+            // Parking info (shown only if available)
+            if restaurant.hasParkingInfo {
+                parkingRow
+            }
 
             // Price with per-person and total
             priceDisplay
@@ -61,6 +69,15 @@ struct RestaurantCard: View {
         .accessibilityAddTraits(.isButton)
     }
 
+    // MARK: - Price Level Tag Row
+
+    private var priceLevelTagRow: some View {
+        Text(restaurant.priceLevelTag.displayText)
+            .font(.subheadline)
+            .fontWeight(.medium)
+            .foregroundColor(Color.theme.label)
+    }
+
     // MARK: - Description Row
 
     private var descriptionRow: some View {
@@ -69,6 +86,18 @@ struct RestaurantCard: View {
             .italic()
             .foregroundColor(Color.theme.label)
             .lineLimit(2)
+    }
+
+    // MARK: - Parking Row
+
+    private var parkingRow: some View {
+        HStack(spacing: 6) {
+            Text("🚗")
+                .font(.subheadline)
+            Text(restaurant.parking)
+                .font(.subheadline)
+                .foregroundColor(Color.theme.label)
+        }
     }
 
     // MARK: - Price Display
@@ -100,7 +129,10 @@ struct RestaurantCard: View {
 
     private var accessibilityText: String {
         let personText = partySize == 1 ? "person" : "people"
-        return "\(restaurant.name). \(restaurant.description). $\(restaurant.averageCost) per person, approximately $\(restaurant.totalCost(for: partySize)) total for \(partySize) \(personText)"
+        let priceLevelText = "\(restaurant.priceLevelTag.label) restaurant"
+        let parkingText = restaurant.hasParkingInfo ? " Parking: \(restaurant.parking)." : ""
+
+        return "\(restaurant.name). \(priceLevelText). \(restaurant.description).\(parkingText) $\(restaurant.averageCost) per person, approximately $\(restaurant.totalCost(for: partySize)) total for \(partySize) \(personText)"
     }
 }
 
@@ -158,6 +190,25 @@ struct RestaurantCard: View {
             mapQuery: "Solo Spot"
         ),
         partySize: 1
+    )
+    .padding()
+    .background(Color.theme.background)
+}
+
+#Preview("Luxury - No Parking") {
+    RestaurantCard(
+        restaurant: Restaurant(
+            id: UUID(),
+            name: "Gary Danko",
+            lat: 37.8059,
+            lng: -122.4209,
+            priceLevel: 4,
+            averageCost: 170,
+            description: "Classic luxury dining with impeccable service",
+            parking: "",
+            mapQuery: "Gary Danko San Francisco"
+        ),
+        partySize: 2
     )
     .padding()
     .background(Color.theme.background)

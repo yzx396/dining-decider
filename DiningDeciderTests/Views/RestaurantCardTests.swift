@@ -162,4 +162,82 @@ final class RestaurantCardTests: XCTestCase {
         // Then
         XCTAssertEqual(restaurant.name, "Jack's Wife Freda & Co.")
     }
+
+    // MARK: - Price Level Tag Tests
+
+    func test_restaurantCard_displaysCorrectPriceLevelTagForLuxury() {
+        // Given
+        let restaurant = makeTestRestaurant(priceLevel: 4)
+
+        // When
+        let tag = restaurant.priceLevelTag
+
+        // Then - Should display luxury tag
+        XCTAssertEqual(tag.emoji, "💎")
+        XCTAssertEqual(tag.label, "Luxury")
+    }
+
+    func test_restaurantCard_displaysCorrectPriceLevelTagForPremium() {
+        // Given
+        let restaurant = makeTestRestaurant(priceLevel: 3)
+
+        // When
+        let tag = restaurant.priceLevelTag
+
+        // Then - Should display premium tag
+        XCTAssertEqual(tag.emoji, "✨")
+        XCTAssertEqual(tag.label, "Premium")
+    }
+
+    func test_restaurantCard_displaysCorrectPriceLevelTagForAesthetic() {
+        // Given
+        let restaurant = makeTestRestaurant(priceLevel: 2)
+
+        // When
+        let tag = restaurant.priceLevelTag
+
+        // Then - Should display aesthetic tag
+        XCTAssertEqual(tag.emoji, "📸")
+        XCTAssertEqual(tag.label, "Aesthetic")
+    }
+
+    func test_restaurantCard_displaysCorrectPriceLevelTagForValue() {
+        // Given
+        let restaurant = makeTestRestaurant(priceLevel: 1)
+
+        // When
+        let tag = restaurant.priceLevelTag
+
+        // Then - Should display value tag
+        XCTAssertEqual(tag.emoji, "💰")
+        XCTAssertEqual(tag.label, "Value")
+    }
+
+    // MARK: - Parking Info Tests
+
+    func test_restaurantCard_hasParkingInfo_withValidParking() {
+        // Given
+        let restaurant = makeTestRestaurant(parking: "Valet available")
+
+        // Then
+        XCTAssertTrue(restaurant.hasParkingInfo)
+        XCTAssertEqual(restaurant.parking, "Valet available")
+    }
+
+    func test_restaurantCard_hasParkingInfo_withEmptyParking() {
+        // Given
+        let restaurant = makeTestRestaurant(parking: "")
+
+        // Then
+        XCTAssertFalse(restaurant.hasParkingInfo)
+    }
+
+    func test_restaurantCard_accessibilityIncludesParkingWhenAvailable() {
+        // Given
+        let restaurant = makeTestRestaurant(parking: "Valet available")
+
+        // Then - Parking info should be accessible
+        XCTAssertTrue(restaurant.hasParkingInfo)
+        XCTAssertEqual(restaurant.parking, "Valet available")
+    }
 }
