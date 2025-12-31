@@ -1,10 +1,13 @@
 import SwiftUI
+import CoreLocation
 
 struct ContentView: View {
     @State private var rotation: Double = 0
     @State private var showResults = false
     @State private var landedCategory = "Rooftop"
     @State private var landedRestaurants: [Restaurant] = []
+    @State private var locationManager = LocationManager()
+    @State private var searchRadius: Double = DistanceCalculator.defaultRadiusMiles
 
     private let sectors = WheelSector.aestheticSectors
     private let restaurantLoader: RestaurantLoading
@@ -24,7 +27,17 @@ struct ContentView: View {
             Color.theme.background
                 .ignoresSafeArea()
 
-            VStack(spacing: 32) {
+            VStack(spacing: 24) {
+                // Controls Card
+                ControlsCard(
+                    isLocationAuthorized: locationManager.isAuthorized,
+                    onRequestLocation: {
+                        locationManager.requestPermission()
+                    }
+                )
+                .padding(.horizontal, 20)
+                .padding(.top, 16)
+
                 Spacer()
 
                 // Wheel
@@ -72,11 +85,18 @@ struct ContentView: View {
     private func handleSpinComplete(sectorIndex: Int) {
         landedCategory = sectors[sectorIndex].label
 
-        // Get restaurants for the landed category
-        let allRestaurants = restaurantLoader.restaurants(for: landedCategory)
-
-        // Shuffle and take top 3
-        landedRestaurants = allRestaurants.shuffled().prefix(3).map { $0 }
+        // Get restaurants filtered by location if available
+        if locationManager.isAuthorized, let location = locationManager.currentLocation {
+            landedRestaurants = restaurantLoader.restaurantsFiltered(
+                for: landedCategory,
+                near: location,
+                radiusMiles: searchRadius
+            )
+        } else {
+            // Fallback: show all restaurants (shuffled, up to 3) when no location
+            let allRestaurants = restaurantLoader.restaurants(for: landedCategory)
+            landedRestaurants = allRestaurants.shuffled().prefix(3).map { $0 }
+        }
 
         showResults = true
     }
@@ -91,6 +111,15 @@ private final class MockRestaurantLoader: RestaurantLoading {
 
     func restaurants(for category: String) -> [Restaurant] {
         Restaurant.skeletonData
+    }
+
+    func restaurantsFiltered(
+        for category: String,
+        near location: CLLocationCoordinate2D?,
+        radiusMiles: Double
+    ) -> [Restaurant] {
+        guard location != nil else { return [] }
+        return Restaurant.skeletonData
     }
 }
 
