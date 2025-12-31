@@ -23,7 +23,7 @@ struct ResultsView: View {
                     }
                     .padding(.top, 8)
 
-                    // Restaurant cards
+                    // Restaurant cards with map buttons
                     VStack(spacing: 16) {
                         ForEach(restaurants) { restaurant in
                             RestaurantCard(restaurant: restaurant, partySize: partySize)
@@ -52,54 +52,7 @@ struct ResultsView: View {
     }
 }
 
-struct RestaurantCard: View {
-    let restaurant: Restaurant
-    let partySize: Int
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Name
-            Text(restaurant.name)
-                .font(.headline)
-                .fontWeight(.semibold)
-                .foregroundColor(Color.theme.textPrimary)
-
-            // Description
-            Text("\"\(restaurant.description)\"")
-                .font(.subheadline)
-                .italic()
-                .foregroundColor(Color.theme.label)
-                .lineLimit(2)
-
-            // Price with per-person and total
-            priceDisplay
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(20)
-        .background(Color.theme.cardBackground)
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.05), radius: 8, y: 2)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(restaurant.name). \(restaurant.description). $\(restaurant.averageCost) per person, approximately $\(restaurant.totalCost(for: partySize)) total for \(partySize) \(partySize == 1 ? "person" : "people")")
-    }
-
-    private var priceDisplay: some View {
-        HStack(spacing: 4) {
-            Text("$\(restaurant.averageCost)/person")
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundColor(Color.theme.textPrimary)
-
-            Text("·")
-                .font(.subheadline)
-                .foregroundColor(Color.theme.label)
-
-            Text("~$\(restaurant.totalCost(for: partySize)) total")
-                .font(.subheadline)
-                .foregroundColor(Color.theme.label)
-        }
-    }
-}
+// Note: RestaurantCard is now in its own file at Views/Components/RestaurantCard.swift
 
 #Preview("Party of 2") {
     ResultsView(
