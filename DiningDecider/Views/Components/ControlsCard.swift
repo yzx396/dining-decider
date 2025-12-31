@@ -18,12 +18,15 @@ struct ControlsCard: View {
     @Binding var manualLocation: CLLocationCoordinate2D?
     @Binding var manualLocationName: String?
     @Binding var searchRadius: SearchRadius
+    @Binding var selectedVibe: VibeMode
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             locationSection
 
             RadiusPicker(selectedRadius: $searchRadius)
+
+            VibeSelector(selectedVibe: $selectedVibe)
         }
         .padding(20)
         .background(Color.theme.cardBackground)
@@ -215,6 +218,7 @@ struct ControlsCard: View {
         @State private var location: CLLocationCoordinate2D?
         @State private var locationName: String?
         @State private var radius: SearchRadius = .defaultRadius
+        @State private var vibe: VibeMode = .aesthetic
 
         var body: some View {
             ZStack {
@@ -227,7 +231,8 @@ struct ControlsCard: View {
                     manualSearchText: $searchText,
                     manualLocation: $location,
                     manualLocationName: $locationName,
-                    searchRadius: $radius
+                    searchRadius: $radius,
+                    selectedVibe: $vibe
                 )
                 .padding()
             }
@@ -243,6 +248,7 @@ struct ControlsCard: View {
         @State private var location: CLLocationCoordinate2D?
         @State private var locationName: String?
         @State private var radius: SearchRadius = .defaultRadius
+        @State private var vibe: VibeMode = .aesthetic
 
         var body: some View {
             ZStack {
@@ -255,7 +261,8 @@ struct ControlsCard: View {
                     manualSearchText: $searchText,
                     manualLocation: $location,
                     manualLocationName: $locationName,
-                    searchRadius: $radius
+                    searchRadius: $radius,
+                    selectedVibe: $vibe
                 )
                 .padding()
             }
@@ -271,6 +278,7 @@ struct ControlsCard: View {
         @State private var location: CLLocationCoordinate2D?
         @State private var locationName: String?
         @State private var radius: SearchRadius = .defaultRadius
+        @State private var vibe: VibeMode = .splurge
 
         var body: some View {
             ZStack {
@@ -283,7 +291,8 @@ struct ControlsCard: View {
                     manualSearchText: $searchText,
                     manualLocation: $location,
                     manualLocationName: $locationName,
-                    searchRadius: $radius
+                    searchRadius: $radius,
+                    selectedVibe: $vibe
                 )
                 .padding()
             }
@@ -302,6 +311,7 @@ struct ControlsCard: View {
         )
         @State private var locationName: String? = "San Francisco, CA"
         @State private var radius: SearchRadius = .defaultRadius
+        @State private var vibe: VibeMode = .standard
 
         var body: some View {
             ZStack {
@@ -314,7 +324,8 @@ struct ControlsCard: View {
                     manualSearchText: $searchText,
                     manualLocation: $location,
                     manualLocationName: $locationName,
-                    searchRadius: $radius
+                    searchRadius: $radius,
+                    selectedVibe: $vibe
                 )
                 .padding()
             }

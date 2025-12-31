@@ -25,6 +25,12 @@ protocol RestaurantLoading {
         near location: CLLocationCoordinate2D?,
         radiusMiles: Double
     ) -> [Restaurant]
+    func restaurantsFiltered(
+        for category: String,
+        near location: CLLocationCoordinate2D?,
+        radiusMiles: Double,
+        allowedPriceLevels: [Int]?
+    ) -> [Restaurant]
 }
 
 /// Raw restaurant data matching JSON structure
@@ -111,17 +117,54 @@ final class RestaurantLoader: RestaurantLoading {
         near location: CLLocationCoordinate2D?,
         radiusMiles: Double = DistanceCalculator.defaultRadiusMiles
     ) -> [Restaurant] {
+        restaurantsFiltered(
+            for: category,
+            near: location,
+            radiusMiles: radiusMiles,
+            allowedPriceLevels: nil
+        )
+    }
+
+    /// Returns restaurants filtered by distance and price level
+    /// - Parameters:
+    ///   - category: The category to filter
+    ///   - location: User's current location (returns empty if nil)
+    ///   - radiusMiles: Search radius in miles
+    ///   - allowedPriceLevels: Price levels to include (1-4), nil means all
+    /// - Returns: Up to 3 shuffled restaurants matching criteria
+    func restaurantsFiltered(
+        for category: String,
+        near location: CLLocationCoordinate2D?,
+        radiusMiles: Double,
+        allowedPriceLevels: [Int]?
+    ) -> [Restaurant] {
         guard let location = location else {
+            return []
+        }
+
+        // Empty array means no restaurants should match
+        if let levels = allowedPriceLevels, levels.isEmpty {
             return []
         }
 
         return restaurants(for: category)
             .filter { restaurant in
-                DistanceCalculator.isWithinRadius(
+                // Filter by distance
+                let withinRadius = DistanceCalculator.isWithinRadius(
                     point: restaurant.coordinate,
                     center: location,
                     radiusMiles: radiusMiles
                 )
+
+                // Filter by price level if specified
+                let matchesPrice: Bool
+                if let levels = allowedPriceLevels {
+                    matchesPrice = levels.contains(restaurant.priceLevel)
+                } else {
+                    matchesPrice = true
+                }
+
+                return withinRadius && matchesPrice
             }
             .shuffled()
             .prefix(3)
