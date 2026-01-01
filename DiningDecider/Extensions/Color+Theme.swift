@@ -1,4 +1,5 @@
 import SwiftUI
+import DiningDeciderCore
 
 extension Color {
     init(hex: String) {
@@ -103,21 +104,11 @@ extension Color {
             return 0.0  // Default to dark if extraction fails
         }
 
-        // Linearize sRGB components (gamma correction)
-        let linearize: (Double) -> Double = { component in
-            if component <= 0.03928 {
-                return component / 12.92
-            } else {
-                return pow((component + 0.055) / 1.055, 2.4)
-            }
-        }
-
-        let r = linearize(components.red)
-        let g = linearize(components.green)
-        let b = linearize(components.blue)
-
-        // Apply WCAG relative luminance formula
-        return (0.2126 * r) + (0.7152 * g) + (0.0722 * b)
+        return LuminanceCalculator.relativeLuminance(
+            red: components.red,
+            green: components.green,
+            blue: components.blue
+        )
     }
 
     /// Returns the optimal text color (charcoal or off-white) for this background color.
@@ -128,7 +119,9 @@ extension Color {
     ///
     /// - Returns: Either `Color.theme.textPrimary` or `Color.theme.textSecondary`
     var contrastTextColor: Color {
-        return relativeLuminance > 0.5 ? Color.theme.textPrimary : Color.theme.textSecondary
+        return LuminanceCalculator.shouldUseDarkText(forLuminance: relativeLuminance)
+            ? Color.theme.textPrimary
+            : Color.theme.textSecondary
     }
 
     /// Extracts RGB components from a SwiftUI Color by converting to UIColor.

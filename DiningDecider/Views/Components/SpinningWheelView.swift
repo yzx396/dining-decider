@@ -1,4 +1,5 @@
 import SwiftUI
+import DiningDeciderCore
 
 struct SpinningWheelView: View {
     let sectors: [WheelSector]
@@ -136,7 +137,12 @@ struct SpinningWheelView: View {
             hapticManager.wheelTouchBegan()
         }
 
-        let currentAngle = WheelPhysics.angleFromCenter(center: center, point: value.location)
+        let currentAngle = WheelPhysics.angleFromCenter(
+            centerX: Double(center.x),
+            centerY: Double(center.y),
+            pointX: Double(value.location.x),
+            pointY: Double(value.location.y)
+        )
         let now = Date()
 
         if lastDragTime != Date.distantPast {
@@ -217,6 +223,7 @@ struct SpinningWheelView: View {
 
         // Calculate landing sector and notify
         let sectorIndex = WheelMath.landingSector(rotation: rotation, sectorCount: sectors.count)
+        print("🎡 DEBUG: rotation=\(rotation), sectorCount=\(sectors.count), sectorIndex=\(sectorIndex), label=\(sectors[sectorIndex].label)")
         onSpinComplete?(sectorIndex)
     }
 

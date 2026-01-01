@@ -1,4 +1,5 @@
 import Foundation
+import DiningDeciderCore
 @testable import DiningDecider
 
 /// Mock implementation of HapticProviding for testing

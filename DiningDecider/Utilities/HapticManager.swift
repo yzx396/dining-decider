@@ -1,36 +1,7 @@
 import UIKit
+import DiningDeciderCore
 
-// MARK: - Haptic Types
-
-/// Enum representing different types of haptic feedback
-enum HapticType: Equatable {
-    case impact(ImpactStyle)
-    case notification(NotificationType)
-    case selection
-
-    enum ImpactStyle: Equatable {
-        case light
-        case medium
-        case heavy
-    }
-
-    enum NotificationType: Equatable {
-        case success
-        case warning
-        case error
-    }
-}
-
-// MARK: - Protocol
-
-/// Protocol for haptic feedback providers, enabling testability
-protocol HapticProviding {
-    func triggerImpact(_ style: HapticType.ImpactStyle)
-    func triggerNotification(_ type: HapticType.NotificationType)
-    func triggerSelection()
-}
-
-// MARK: - System Haptic Provider
+// MARK: - System Haptic Provider (iOS-specific)
 
 /// System implementation using UIKit haptic feedback generators
 final class SystemHapticProvider: HapticProviding {
@@ -81,49 +52,11 @@ final class SystemHapticProvider: HapticProviding {
     }
 }
 
-// MARK: - Haptic Manager
+// MARK: - Convenience Extension
 
-/// Manages haptic feedback throughout the app
-/// Provides semantic methods for different user interactions
-final class HapticManager {
-    private let provider: HapticProviding
-
-    /// Whether haptic feedback is enabled
-    var isEnabled: Bool = true
-
-    /// Initialize with a custom provider (for testing) or default to system haptics
-    init(provider: HapticProviding = SystemHapticProvider()) {
-        self.provider = provider
-    }
-
-    // MARK: - Wheel Interaction Haptics
-
-    /// Trigger haptic when user first touches the wheel
-    /// Uses light impact for subtle feedback
-    func wheelTouchBegan() {
-        guard isEnabled else { return }
-        provider.triggerImpact(.light)
-    }
-
-    /// Trigger haptic when spin starts (user releases with velocity)
-    /// Uses medium impact for noticeable feedback
-    func spinStarted() {
-        guard isEnabled else { return }
-        provider.triggerImpact(.medium)
-    }
-
-    /// Trigger haptic when spin completes and lands on a sector
-    /// Uses success notification for satisfying completion feedback
-    func spinCompleted() {
-        guard isEnabled else { return }
-        provider.triggerNotification(.success)
-    }
-
-    // MARK: - General Haptics
-
-    /// Trigger haptic for selection changes (e.g., picker changes)
-    func selectionChanged() {
-        guard isEnabled else { return }
-        provider.triggerSelection()
+extension HapticManager {
+    /// Create a HapticManager with the system haptic provider
+    convenience init() {
+        self.init(provider: SystemHapticProvider())
     }
 }

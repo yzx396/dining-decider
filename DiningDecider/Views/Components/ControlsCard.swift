@@ -1,5 +1,6 @@
 import SwiftUI
 import CoreLocation
+import DiningDeciderCore
 
 /// The mode for location selection
 enum LocationMode: Equatable {

@@ -1,4 +1,5 @@
 import SwiftUI
+import DiningDeciderCore
 
 /// A custom stepper for selecting party size with circular +/- buttons
 struct PartySizeStepper: View {

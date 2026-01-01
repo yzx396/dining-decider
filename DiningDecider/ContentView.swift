@@ -1,5 +1,6 @@
 import SwiftUI
 import CoreLocation
+import DiningDeciderCore
 
 struct ContentView: View {
     @State private var rotation: Double = 0

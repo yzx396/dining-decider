@@ -1,4 +1,5 @@
 import SwiftUI
+import DiningDeciderCore
 
 /// A segmented picker for selecting search radius
 struct RadiusPicker: View {

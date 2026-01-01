@@ -1,5 +1,6 @@
 import Foundation
 import CoreLocation
+import DiningDeciderCore
 
 /// Error types for restaurant loading
 enum RestaurantLoaderError: Error, LocalizedError {
@@ -151,8 +152,10 @@ final class RestaurantLoader: RestaurantLoading {
             .filter { restaurant in
                 // Filter by distance
                 let withinRadius = DistanceCalculator.isWithinRadius(
-                    point: restaurant.coordinate,
-                    center: location,
+                    pointLatitude: restaurant.coordinate.latitude,
+                    pointLongitude: restaurant.coordinate.longitude,
+                    centerLatitude: location.latitude,
+                    centerLongitude: location.longitude,
                     radiusMiles: radiusMiles
                 )
 

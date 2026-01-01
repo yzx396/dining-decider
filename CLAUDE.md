@@ -28,7 +28,7 @@ open DiningDecider.xcodeproj
 # Build from command line
 xcodebuild -scheme DiningDecider -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 
-# Run all tests
+# Run all tests (requires iOS Simulator)
 xcodebuild test -scheme DiningDecider -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 
 # Run a single test class
@@ -37,8 +37,34 @@ xcodebuild test -scheme DiningDecider -destination 'platform=iOS Simulator,name=
 # Run a single test method
 xcodebuild test -scheme DiningDecider -destination 'platform=iOS Simulator,name=iPhone 17 Pro' -only-testing:DiningDeciderTests/WheelMathTests/test_landingSector_withZeroRotation_returnsFirstSector
 
+# Run core logic tests WITHOUT simulator (fast, ~0.01s)
+cd DiningDeciderCore && swift test
+
 # Lint code (install: brew install swiftlint)
 swiftlint
+```
+
+## DiningDeciderCore Package
+
+Pure Swift logic extracted into a Swift Package for fast, simulator-free testing:
+
+```
+DiningDeciderCore/
+├── Sources/DiningDeciderCore/
+│   ├── LuminanceCalculator.swift   # Color luminance & contrast math
+│   ├── WheelMath.swift             # Sector landing calculations
+│   ├── WheelPhysics.swift          # Momentum & friction physics
+│   ├── DistanceCalculator.swift    # Haversine distance formula
+│   ├── HapticTypes.swift           # Haptic types & manager (no UIKit)
+│   ├── PartySize.swift             # Party size constants & validation
+│   ├── SearchRadius.swift          # Search radius options
+│   └── PriceCalculator.swift       # Price formatting utilities
+└── Tests/DiningDeciderCoreTests/   # 125 tests, runs in ~0.01s
+```
+
+**Run these tests first** during development for fast feedback:
+```bash
+cd DiningDeciderCore && swift test
 ```
 
 ## Target Project Structure

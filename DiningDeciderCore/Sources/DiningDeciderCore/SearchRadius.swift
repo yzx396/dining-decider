@@ -1,14 +1,14 @@
 import Foundation
 
 /// Represents the available search radius options for filtering restaurants
-enum SearchRadius: String, CaseIterable, Identifiable {
+public enum SearchRadius: String, CaseIterable, Identifiable {
     case fiveMiles
     case tenMiles
     case fifteenMiles
     case twentyFiveMiles
 
     /// The numeric miles value for this radius
-    var miles: Double {
+    public var miles: Double {
         switch self {
         case .fiveMiles: return 5.0
         case .tenMiles: return 10.0
@@ -18,7 +18,7 @@ enum SearchRadius: String, CaseIterable, Identifiable {
     }
 
     /// The display label for the UI
-    var label: String {
+    public var label: String {
         switch self {
         case .fiveMiles: return "5 mi"
         case .tenMiles: return "10 mi"
@@ -28,8 +28,8 @@ enum SearchRadius: String, CaseIterable, Identifiable {
     }
 
     /// The default search radius (10 miles)
-    static let defaultRadius: SearchRadius = .tenMiles
+    public static let defaultRadius: SearchRadius = .tenMiles
 
     /// Identifiable conformance
-    var id: String { rawValue }
+    public var id: String { rawValue }
 }
