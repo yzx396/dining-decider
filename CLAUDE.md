@@ -26,16 +26,16 @@ Dining Decider is a native iOS app (SwiftUI, iOS 17+) that helps users decide wh
 open DiningDecider.xcodeproj
 
 # Build from command line
-xcodebuild -scheme DiningDecider -destination 'platform=iOS Simulator,name=iPhone 15 Pro'
+xcodebuild -scheme DiningDecider -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 
 # Run all tests
-xcodebuild test -scheme DiningDecider -destination 'platform=iOS Simulator,name=iPhone 15 Pro'
+xcodebuild test -scheme DiningDecider -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 
 # Run a single test class
-xcodebuild test -scheme DiningDecider -destination 'platform=iOS Simulator,name=iPhone 15 Pro' -only-testing:DiningDeciderTests/WheelMathTests
+xcodebuild test -scheme DiningDecider -destination 'platform=iOS Simulator,name=iPhone 17 Pro' -only-testing:DiningDeciderTests/WheelMathTests
 
 # Run a single test method
-xcodebuild test -scheme DiningDecider -destination 'platform=iOS Simulator,name=iPhone 15 Pro' -only-testing:DiningDeciderTests/WheelMathTests/test_landingSector_withZeroRotation_returnsFirstSector
+xcodebuild test -scheme DiningDecider -destination 'platform=iOS Simulator,name=iPhone 17 Pro' -only-testing:DiningDeciderTests/WheelMathTests/test_landingSector_withZeroRotation_returnsFirstSector
 
 # Lint code (install: brew install swiftlint)
 swiftlint

@@ -9,23 +9,10 @@
     }
   ],
   "defaultOptions" : {
-    "codeCoverage" : {
-      "targets" : [
-        {
-          "containerPath" : "container:DiningDecider.xcodeproj",
-          "identifier" : "2F6C467E2F0507CB00482DD3",
-          "name" : "DiningDecider"
-        }
-      ]
-    },
-    "testExecutionOrdering" : "random",
-    "testTimeoutsEnabled" : true,
-    "defaultTestExecutionTimeAllowance" : 60,
-    "maximumTestExecutionTimeAllowance" : 120
+
   },
   "testTargets" : [
     {
-      "parallelizable" : true,
       "target" : {
         "containerPath" : "container:DiningDecider.xcodeproj",
         "identifier" : "2F6C468E2F0507CC00482DD3",

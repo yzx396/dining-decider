@@ -28,39 +28,15 @@
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES"
-      codeCoverageEnabled = "YES"
-      onlyGenerateCoverageForSpecifiedTargets = "YES">
-      <CodeCoverageTargets>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "2F6C467E2F0507CB00482DD3"
-            BuildableName = "DiningDecider.app"
-            BlueprintName = "DiningDecider"
-            ReferencedContainer = "container:DiningDecider.xcodeproj">
-         </BuildableReference>
-      </CodeCoverageTargets>
+      codeCoverageEnabled = "NO">
       <Testables>
          <TestableReference
-            skipped = "NO"
-            parallelizable = "YES"
-            testExecutionOrdering = "random">
+            skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "2F6C468E2F0507CC00482DD3"
                BuildableName = "DiningDeciderTests.xctest"
                BlueprintName = "DiningDeciderTests"
-               ReferencedContainer = "container:DiningDecider.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
-         <TestableReference
-            skipped = "NO"
-            parallelizable = "YES"
-            testExecutionOrdering = "random">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "2F6C46982F0507CC00482DD3"
-               BuildableName = "DiningDeciderUITests.xctest"
-               BlueprintName = "DiningDeciderUITests"
                ReferencedContainer = "container:DiningDecider.xcodeproj">
             </BuildableReference>
          </TestableReference>

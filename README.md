@@ -42,10 +42,10 @@ Dining Decider transforms restaurant selection into a delightful game. Instead o
 open DiningDecider.xcodeproj
 
 # Build from command line
-xcodebuild -scheme DiningDecider -destination 'platform=iOS Simulator,name=iPhone 15 Pro'
+xcodebuild -scheme DiningDecider -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 
 # Run all tests
-xcodebuild test -scheme DiningDecider -destination 'platform=iOS Simulator,name=iPhone 15 Pro'
+xcodebuild test -scheme DiningDecider -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
 ## Project Structure

@@ -777,7 +777,7 @@ Week 4
 ### Functionality
 - [ ] All functional acceptance criteria met
 - [ ] No compiler warnings
-- [ ] Works on iPhone 15 Pro simulator (iOS 17+)
+- [ ] Works on iPhone 17 Pro simulator (iOS 17+)
 - [ ] Code follows project structure
 - [ ] Committed with descriptive message
 
