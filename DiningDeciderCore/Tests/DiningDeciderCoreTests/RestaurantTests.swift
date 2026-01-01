@@ -1,6 +1,6 @@
 import XCTest
 import CoreLocation
-@testable import DiningDecider
+@testable import DiningDeciderCore
 
 final class RestaurantTests: XCTestCase {
 
@@ -93,108 +93,126 @@ final class RestaurantTests: XCTestCase {
         XCTAssertEqual(total, 200)
     }
 
+    func test_restaurant_totalCost_withOneGuest_equalsAverageCost() {
+        let restaurant = makeRestaurant(averageCost: 65)
+        XCTAssertEqual(restaurant.totalCost(for: 1), 65)
+    }
+
+    func test_restaurant_totalCost_withZeroGuests_returnsZero() {
+        let restaurant = makeRestaurant(averageCost: 50)
+        XCTAssertEqual(restaurant.totalCost(for: 0), 0)
+    }
+
     // MARK: - Price Level Tag Tests
 
     func test_priceLevelTag_level4_returnsLuxury() {
-        // Given
         let restaurant = makeRestaurant(priceLevel: 4)
-
-        // When
         let tag = restaurant.priceLevelTag
-
-        // Then
         XCTAssertEqual(tag.emoji, "💎")
         XCTAssertEqual(tag.label, "Luxury")
     }
 
     func test_priceLevelTag_level3_returnsPremium() {
-        // Given
         let restaurant = makeRestaurant(priceLevel: 3)
-
-        // When
         let tag = restaurant.priceLevelTag
-
-        // Then
         XCTAssertEqual(tag.emoji, "✨")
         XCTAssertEqual(tag.label, "Premium")
     }
 
     func test_priceLevelTag_level2_returnsAesthetic() {
-        // Given
         let restaurant = makeRestaurant(priceLevel: 2)
-
-        // When
         let tag = restaurant.priceLevelTag
-
-        // Then
         XCTAssertEqual(tag.emoji, "📸")
         XCTAssertEqual(tag.label, "Aesthetic")
     }
 
     func test_priceLevelTag_level1_returnsValue() {
-        // Given
         let restaurant = makeRestaurant(priceLevel: 1)
-
-        // When
         let tag = restaurant.priceLevelTag
-
-        // Then
         XCTAssertEqual(tag.emoji, "💰")
         XCTAssertEqual(tag.label, "Value")
     }
 
     func test_priceLevelTag_invalidLevel_defaultsToValue() {
-        // Given
         let restaurant = makeRestaurant(priceLevel: 0)
-
-        // When
         let tag = restaurant.priceLevelTag
-
-        // Then
         XCTAssertEqual(tag.emoji, "💰")
         XCTAssertEqual(tag.label, "Value")
+    }
+
+    func test_priceLevelTag_negativelevel_defaultsToValue() {
+        let restaurant = makeRestaurant(priceLevel: -1)
+        let tag = restaurant.priceLevelTag
+        XCTAssertEqual(tag, .value)
     }
 
     // MARK: - Parking Info Tests
 
     func test_hasParkingInfo_withParking_returnsTrue() {
-        // Given
         let restaurant = makeRestaurant(parking: "Valet available")
-
-        // Then
         XCTAssertTrue(restaurant.hasParkingInfo)
     }
 
     func test_hasParkingInfo_withEmptyString_returnsFalse() {
-        // Given
         let restaurant = makeRestaurant(parking: "")
-
-        // Then
         XCTAssertFalse(restaurant.hasParkingInfo)
     }
 
     func test_hasParkingInfo_withWhitespaceOnly_returnsFalse() {
-        // Given
         let restaurant = makeRestaurant(parking: "   ")
-
-        // Then
         XCTAssertFalse(restaurant.hasParkingInfo)
+    }
+
+    // MARK: - PriceLevelTag Tests
+
+    func test_priceLevelTag_displayText_combinesEmojiAndLabel() {
+        XCTAssertEqual(PriceLevelTag.luxury.displayText, "💎 Luxury")
+        XCTAssertEqual(PriceLevelTag.premium.displayText, "✨ Premium")
+        XCTAssertEqual(PriceLevelTag.aesthetic.displayText, "📸 Aesthetic")
+        XCTAssertEqual(PriceLevelTag.value.displayText, "💰 Value")
+    }
+
+    func test_priceLevelTag_equality() {
+        let tag1 = PriceLevelTag(emoji: "💎", label: "Luxury")
+        let tag2 = PriceLevelTag.luxury
+        XCTAssertEqual(tag1, tag2)
+    }
+
+    // MARK: - Edge Cases
+
+    func test_restaurant_handlesEmptyDescription() {
+        let restaurant = makeRestaurant(description: "")
+        XCTAssertEqual(restaurant.description, "")
+    }
+
+    func test_restaurant_handlesLongName() {
+        let longName = "The Very Long Restaurant Name That Might Need Truncation In The UI"
+        let restaurant = makeRestaurant(name: longName)
+        XCTAssertEqual(restaurant.name, longName)
+    }
+
+    func test_restaurant_handlesSpecialCharactersInName() {
+        let restaurant = makeRestaurant(name: "Jack's Wife Freda & Co.")
+        XCTAssertEqual(restaurant.name, "Jack's Wife Freda & Co.")
     }
 
     // MARK: - Helper
 
     private func makeRestaurant(
+        name: String = "Test Restaurant",
         priceLevel: Int = 2,
+        averageCost: Int = 35,
+        description: String = "Test description",
         parking: String = "Street parking"
     ) -> Restaurant {
         Restaurant(
             id: UUID(),
-            name: "Test Restaurant",
+            name: name,
             lat: 37.7749,
             lng: -122.4194,
             priceLevel: priceLevel,
-            averageCost: 35,
-            description: "Test description",
+            averageCost: averageCost,
+            description: description,
             parking: parking,
             mapQuery: "Test Restaurant SF"
         )

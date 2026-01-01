@@ -1,47 +1,28 @@
 import Foundation
 import UIKit
+import DiningDeciderCore
 
 /// A utility for opening restaurant locations in Apple Maps.
-///
-/// Provides methods to generate Maps URLs with coordinates and search queries,
-/// and to open those URLs in the Maps app.
+/// Uses Core for URL generation, adds UIKit-specific opening functionality.
 enum MapsHelper {
 
-    // MARK: - URL Generation
+    // MARK: - URL Generation (Delegates to Core)
 
     /// Generates an Apple Maps URL for a restaurant using its coordinates.
-    ///
-    /// The URL includes both the coordinates (for precise positioning) and
-    /// the restaurant name as a query (for display in Maps).
-    ///
-    /// - Parameter restaurant: The restaurant to generate a URL for
-    /// - Returns: A URL that will open Apple Maps at the restaurant location, or nil if URL creation fails
     static func mapsURL(for restaurant: Restaurant) -> URL? {
-        let encodedName = restaurant.name.addingPercentEncoding(
-            withAllowedCharacters: .urlQueryAllowed
-        ) ?? ""
-
-        let urlString = "maps://?ll=\(restaurant.lat),\(restaurant.lng)&q=\(encodedName)"
-        return URL(string: urlString)
+        DiningDeciderCore.MapsHelper.mapsURL(
+            name: restaurant.name,
+            latitude: restaurant.lat,
+            longitude: restaurant.lng
+        )
     }
 
     /// Generates an Apple Maps URL using the restaurant's search query.
-    ///
-    /// This is a fallback method that uses the mapQuery field instead of coordinates.
-    /// Useful when coordinates might be inaccurate or unavailable.
-    ///
-    /// - Parameter restaurant: The restaurant to generate a URL for
-    /// - Returns: A URL that will search Apple Maps for the restaurant
     static func fallbackMapsURL(for restaurant: Restaurant) -> URL? {
-        let encodedQuery = restaurant.mapQuery.addingPercentEncoding(
-            withAllowedCharacters: .urlQueryAllowed
-        ) ?? ""
-
-        let urlString = "maps://?q=\(encodedQuery)"
-        return URL(string: urlString)
+        DiningDeciderCore.MapsHelper.fallbackMapsURL(query: restaurant.mapQuery)
     }
 
-    // MARK: - Opening Maps
+    // MARK: - Opening Maps (UIKit-specific)
 
     /// Opens Apple Maps for a restaurant.
     ///

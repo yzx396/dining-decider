@@ -1,4 +1,5 @@
 import SwiftUI
+import DiningDeciderCore
 
 struct ResultsView: View {
     let category: String

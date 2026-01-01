@@ -1,73 +1,14 @@
 import Foundation
 import CoreLocation
+import DiningDeciderCore
 
-// MARK: - Price Level Tag
+// Re-export Restaurant and PriceLevelTag from Core for app-wide usage
+public typealias Restaurant = DiningDeciderCore.Restaurant
+public typealias PriceLevelTag = DiningDeciderCore.PriceLevelTag
 
-/// Represents a price level label with emoji and text.
-struct PriceLevelTag: Equatable {
-    let emoji: String
-    let label: String
+// MARK: - Skeleton Data (App Layer Extension)
 
-    /// Formatted display string combining emoji and label.
-    var displayText: String {
-        "\(emoji) \(label)"
-    }
-
-    static let luxury = PriceLevelTag(emoji: "💎", label: "Luxury")
-    static let premium = PriceLevelTag(emoji: "✨", label: "Premium")
-    static let aesthetic = PriceLevelTag(emoji: "📸", label: "Aesthetic")
-    static let value = PriceLevelTag(emoji: "💰", label: "Value")
-}
-
-// MARK: - Restaurant
-
-struct Restaurant: Identifiable, Codable, Equatable {
-    let id: UUID
-    let name: String
-    let lat: Double
-    let lng: Double
-    let priceLevel: Int
-    let averageCost: Int
-    let description: String
-    let parking: String
-    let mapQuery: String
-
-    var coordinate: CLLocationCoordinate2D {
-        CLLocationCoordinate2D(latitude: lat, longitude: lng)
-    }
-
-    func totalCost(for partySize: Int) -> Int {
-        averageCost * partySize
-    }
-
-    /// Returns the appropriate price level tag based on price level.
-    ///
-    /// - priceLevel 4: 💎 Luxury
-    /// - priceLevel 3: ✨ Premium
-    /// - priceLevel 2: 📸 Aesthetic
-    /// - priceLevel 1 or other: 💰 Value
-    var priceLevelTag: PriceLevelTag {
-        switch priceLevel {
-        case 4:
-            return .luxury
-        case 3:
-            return .premium
-        case 2:
-            return .aesthetic
-        default:
-            return .value
-        }
-    }
-
-    /// Returns true if parking information is available (non-empty, non-whitespace).
-    var hasParkingInfo: Bool {
-        !parking.trimmingCharacters(in: .whitespaces).isEmpty
-    }
-}
-
-// MARK: - Skeleton Data
-
-extension Restaurant {
+extension DiningDeciderCore.Restaurant {
     static let skeletonData: [Restaurant] = [
         Restaurant(
             id: UUID(),

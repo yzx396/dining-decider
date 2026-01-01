@@ -1,4 +1,5 @@
 import SwiftUI
+import DiningDeciderCore
 
 /// A card displaying restaurant details with a map button.
 ///

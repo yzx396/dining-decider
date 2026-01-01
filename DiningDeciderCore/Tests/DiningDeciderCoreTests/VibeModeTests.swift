@@ -1,5 +1,5 @@
 import XCTest
-@testable import DiningDecider
+@testable import DiningDeciderCore
 
 final class VibeModeTests: XCTestCase {
 
@@ -31,55 +31,57 @@ final class VibeModeTests: XCTestCase {
         XCTAssertEqual(VibeMode.standard.emoji, "🍜")
     }
 
-    // MARK: - Categories Tests
+    // MARK: - Sector Count Tests
 
-    func test_sectors_aesthetic_returns8Sectors() {
-        XCTAssertEqual(VibeMode.aesthetic.sectors.count, 8)
+    func test_sectorCount_aesthetic_returns8() {
+        XCTAssertEqual(VibeMode.aesthetic.sectorCount, 8)
     }
 
-    func test_sectors_aesthetic_containsAestheticCategories() {
-        let categories = VibeMode.aesthetic.sectors.map { $0.label }
-        XCTAssertTrue(categories.contains("Garden Cafe"))
-        XCTAssertTrue(categories.contains("Floral Brunch"))
-        XCTAssertTrue(categories.contains("Rooftop"))
+    func test_sectorCount_splurge_returns6() {
+        XCTAssertEqual(VibeMode.splurge.sectorCount, 6)
     }
 
-    func test_sectors_splurge_returns6Sectors() {
-        XCTAssertEqual(VibeMode.splurge.sectors.count, 6)
+    func test_sectorCount_standard_returns8() {
+        XCTAssertEqual(VibeMode.standard.sectorCount, 8)
     }
 
-    func test_sectors_splurge_containsSplurgeCategories() {
-        let categories = VibeMode.splurge.sectors.map { $0.label }
-        XCTAssertTrue(categories.contains("Seafood"))
-        XCTAssertTrue(categories.contains("Steakhouse"))
-        XCTAssertTrue(categories.contains("Omakase"))
+    // MARK: - Sector Labels Tests
+
+    func test_sectorLabels_aesthetic_containsAestheticCategories() {
+        let labels = VibeMode.aesthetic.sectorLabels
+        XCTAssertEqual(labels.count, 8)
+        XCTAssertTrue(labels.contains("Garden Cafe"))
+        XCTAssertTrue(labels.contains("Floral Brunch"))
+        XCTAssertTrue(labels.contains("Rooftop"))
     }
 
-    func test_sectors_standard_returns8Sectors() {
-        XCTAssertEqual(VibeMode.standard.sectors.count, 8)
+    func test_sectorLabels_splurge_containsSplurgeCategories() {
+        let labels = VibeMode.splurge.sectorLabels
+        XCTAssertEqual(labels.count, 6)
+        XCTAssertTrue(labels.contains("Seafood"))
+        XCTAssertTrue(labels.contains("Steakhouse"))
+        XCTAssertTrue(labels.contains("Omakase"))
     }
 
-    func test_sectors_standard_containsStandardCategories() {
-        let categories = VibeMode.standard.sectors.map { $0.label }
-        XCTAssertTrue(categories.contains("Hot Pot"))
-        XCTAssertTrue(categories.contains("Noodles"))
-        XCTAssertTrue(categories.contains("Korean BBQ"))
+    func test_sectorLabels_standard_containsStandardCategories() {
+        let labels = VibeMode.standard.sectorLabels
+        XCTAssertEqual(labels.count, 8)
+        XCTAssertTrue(labels.contains("Hot Pot"))
+        XCTAssertTrue(labels.contains("Noodles"))
+        XCTAssertTrue(labels.contains("Korean BBQ"))
     }
 
     // MARK: - Price Level Filtering Tests
 
     func test_allowedPriceLevels_aesthetic_allowsAllLevels() {
-        // Aesthetic mode shows all price levels (1-4)
         XCTAssertEqual(VibeMode.aesthetic.allowedPriceLevels, [1, 2, 3, 4])
     }
 
     func test_allowedPriceLevels_splurge_allowsOnlyHighPrices() {
-        // Splurge shows only $$$ / $$$$ restaurants (3-4)
         XCTAssertEqual(VibeMode.splurge.allowedPriceLevels, [3, 4])
     }
 
     func test_allowedPriceLevels_standard_allowsOnlyLowPrices() {
-        // Standard shows only $ / $$ restaurants (1-2)
         XCTAssertEqual(VibeMode.standard.allowedPriceLevels, [1, 2])
     }
 
@@ -137,5 +139,30 @@ final class VibeModeTests: XCTestCase {
 
     func test_allCases_inCorrectOrder() {
         XCTAssertEqual(VibeMode.allCases, [.aesthetic, .splurge, .standard])
+    }
+
+    // MARK: - Identifiable Tests
+
+    func test_id_returnsRawValue() {
+        XCTAssertEqual(VibeMode.aesthetic.id, "aesthetic")
+        XCTAssertEqual(VibeMode.splurge.id, "splurge")
+        XCTAssertEqual(VibeMode.standard.id, "standard")
+    }
+
+    // MARK: - Button Label Format Tests
+
+    func test_buttonLabel_aesthetic_hasCorrectFormat() {
+        let vibe = VibeMode.aesthetic
+        XCTAssertEqual("\(vibe.emoji) \(vibe.displayName)", "✨ Pretty Pics")
+    }
+
+    func test_buttonLabel_splurge_hasCorrectFormat() {
+        let vibe = VibeMode.splurge
+        XCTAssertEqual("\(vibe.emoji) \(vibe.displayName)", "💸 Splurge")
+    }
+
+    func test_buttonLabel_standard_hasCorrectFormat() {
+        let vibe = VibeMode.standard
+        XCTAssertEqual("\(vibe.emoji) \(vibe.displayName)", "🍜 Hungry")
     }
 }

@@ -1,4 +1,5 @@
 import SwiftUI
+import DiningDeciderCore
 
 /// A row of three pill-shaped buttons for selecting vibe mode
 struct VibeSelector: View {

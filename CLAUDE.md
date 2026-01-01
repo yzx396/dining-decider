@@ -44,6 +44,42 @@ cd DiningDeciderCore && swift test
 swiftlint
 ```
 
+## Test Strategy: Simulator-Free First
+
+We prioritize simulator-free tests in `DiningDeciderCore` for fast TDD feedback loops. Pure Swift logic should be extracted to Core whenever possible.
+
+### Test Distribution
+
+| Target | Tests | Execution | Purpose |
+|--------|-------|-----------|---------|
+| **DiningDeciderCore** | ~262 | ~0.02s | Pure logic, models, calculations |
+| **DiningDeciderTests** | ~74 | ~30-60s | UIKit/SwiftUI integration only |
+
+### When to Use Each Target
+
+**DiningDeciderCore (Preferred)**:
+- Data models (Restaurant, VibeMode, WheelSectorData)
+- Pure calculations (WheelMath, WheelPhysics, DistanceCalculator, LuminanceCalculator)
+- Business logic (RestaurantLoader filtering, price calculations)
+- Validation logic (color validation, theme colors)
+- Anything using only Foundation, CoreLocation
+
+**DiningDeciderTests (Only When Required)**:
+- UIColor.resolvedColor with UITraitCollection (dark mode)
+- SwiftUI Color extensions requiring UIColor bridge
+- CLLocationManager delegation
+- SwiftUI View instantiation tests
+- Async geocoding service integration
+
+### Run Core Tests First
+```bash
+# Fast feedback loop (~0.02s)
+cd DiningDeciderCore && swift test
+
+# Full simulator tests (slower, only when needed)
+xcodebuild test -scheme DiningDecider -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
+```
+
 ## DiningDeciderCore Package
 
 Pure Swift logic extracted into a Swift Package for fast, simulator-free testing:
@@ -51,15 +87,21 @@ Pure Swift logic extracted into a Swift Package for fast, simulator-free testing
 ```
 DiningDeciderCore/
 ├── Sources/DiningDeciderCore/
+│   ├── VibeMode.swift              # Vibe enum with pure data
+│   ├── Restaurant.swift            # Restaurant model + PriceLevelTag
+│   ├── RestaurantLoader.swift      # JSON loading + filtering logic
+│   ├── WheelSectorData.swift       # Sector data without SwiftUI Color
+│   ├── MapsHelper.swift            # URL generation for Maps
 │   ├── LuminanceCalculator.swift   # Color luminance & contrast math
 │   ├── WheelMath.swift             # Sector landing calculations
 │   ├── WheelPhysics.swift          # Momentum & friction physics
 │   ├── DistanceCalculator.swift    # Haversine distance formula
-│   ├── HapticTypes.swift           # Haptic types & manager (no UIKit)
-│   ├── PartySize.swift             # Party size constants & validation
+│   ├── HapticTypes.swift           # Haptic types & manager
+│   ├── ThemeColorValues.swift      # Theme hex values (no SwiftUI)
+│   ├── PartySize.swift             # Party size constants
 │   ├── SearchRadius.swift          # Search radius options
 │   └── PriceCalculator.swift       # Price formatting utilities
-└── Tests/DiningDeciderCoreTests/   # 125 tests, runs in ~0.01s
+└── Tests/DiningDeciderCoreTests/   # 262 tests, runs in ~0.02s
 ```
 
 **Run these tests first** during development for fast feedback:

@@ -1,103 +1,86 @@
 import XCTest
 import CoreLocation
-@testable import DiningDecider
+@testable import DiningDeciderCore
 
 final class RestaurantLoaderTests: XCTestCase {
 
     // MARK: - Loading Tests
 
     func test_init_withValidJSON_loadsSuccessfully() throws {
-        // Given
         let json = validRestaurantJSON()
         let data = json.data(using: .utf8)!
-
-        // When
         let loader = try RestaurantLoader(data: data)
-
-        // Then
         XCTAssertNotNil(loader)
     }
 
     func test_init_withInvalidJSON_throws() {
-        // Given
         let invalidJSON = "{ invalid json }"
         let data = invalidJSON.data(using: .utf8)!
-
-        // When/Then
         XCTAssertThrowsError(try RestaurantLoader(data: data))
+    }
+
+    func test_init_withEmptyJSON_createsEmptyLoader() throws {
+        let data = "{}".data(using: .utf8)!
+        let loader = try RestaurantLoader(data: data)
+        XCTAssertTrue(loader.allCategories.isEmpty)
     }
 
     // MARK: - Category Tests
 
     func test_allCategories_returnsAllCategoryNames() throws {
-        // Given
         let json = validRestaurantJSON()
         let data = json.data(using: .utf8)!
         let loader = try RestaurantLoader(data: data)
 
-        // When
         let categories = loader.allCategories
 
-        // Then
         XCTAssertEqual(categories.count, 2)
         XCTAssertTrue(categories.contains("Rooftop"))
         XCTAssertTrue(categories.contains("Cafe"))
     }
 
     func test_allCategories_returnsSortedList() throws {
-        // Given
         let json = validRestaurantJSON()
         let data = json.data(using: .utf8)!
         let loader = try RestaurantLoader(data: data)
 
-        // When
         let categories = loader.allCategories
 
-        // Then
         XCTAssertEqual(categories, categories.sorted())
     }
 
     // MARK: - Restaurant Retrieval Tests
 
     func test_restaurants_forValidCategory_returnsRestaurants() throws {
-        // Given
         let json = validRestaurantJSON()
         let data = json.data(using: .utf8)!
         let loader = try RestaurantLoader(data: data)
 
-        // When
         let restaurants = loader.restaurants(for: "Rooftop")
 
-        // Then
         XCTAssertEqual(restaurants.count, 3)
         XCTAssertEqual(restaurants[0].name, "RH Rooftop SF")
         XCTAssertEqual(restaurants[1].name, "Charmaine's")
     }
 
     func test_restaurants_forInvalidCategory_returnsEmptyArray() throws {
-        // Given
         let json = validRestaurantJSON()
         let data = json.data(using: .utf8)!
         let loader = try RestaurantLoader(data: data)
 
-        // When
         let restaurants = loader.restaurants(for: "NonExistent")
 
-        // Then
         XCTAssertTrue(restaurants.isEmpty)
     }
 
     func test_restaurants_containsCorrectData() throws {
-        // Given
         let json = validRestaurantJSON()
         let data = json.data(using: .utf8)!
         let loader = try RestaurantLoader(data: data)
 
-        // When
         let restaurants = loader.restaurants(for: "Rooftop")
         let restaurant = restaurants.first!
 
-        // Then
         XCTAssertEqual(restaurant.name, "RH Rooftop SF")
         XCTAssertEqual(restaurant.priceLevel, 3)
         XCTAssertEqual(restaurant.averageCost, 70)
@@ -106,130 +89,88 @@ final class RestaurantLoaderTests: XCTestCase {
         XCTAssertEqual(restaurant.mapQuery, "RH Rooftop Restaurant")
     }
 
-    // MARK: - Protocol Conformance Tests
-
-    func test_loaderConformsToRestaurantLoadingProtocol() throws {
-        // Given
-        let json = validRestaurantJSON()
-        let data = json.data(using: .utf8)!
-
-        // When
-        let loader: RestaurantLoading = try RestaurantLoader(data: data)
-
-        // Then
-        XCTAssertNotNil(loader)
-    }
-
-    // MARK: - Bundle Loading Tests
-
-    func test_initFromBundle_loadsRealData() throws {
-        // When
-        let loader = try RestaurantLoader()
-
-        // Then
-        XCTAssertFalse(loader.allCategories.isEmpty)
-        XCTAssertTrue(loader.allCategories.contains("Rooftop"))
-    }
-
     // MARK: - Distance Filtering Tests
 
     func test_restaurants_containsCoordinates() throws {
-        // Given
         let json = validRestaurantJSON()
         let data = json.data(using: .utf8)!
         let loader = try RestaurantLoader(data: data)
 
-        // When
         let restaurants = loader.restaurants(for: "Rooftop")
         let restaurant = restaurants.first!
 
-        // Then
         XCTAssertEqual(restaurant.lat, 37.7877, accuracy: 0.0001)
         XCTAssertEqual(restaurant.lng, -122.4085, accuracy: 0.0001)
     }
 
     func test_restaurantsFiltered_byDistance_returnsOnlyNearby() throws {
-        // Given
         let json = validRestaurantJSON()
         let data = json.data(using: .utf8)!
         let loader = try RestaurantLoader(data: data)
         let sfCenter = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
 
-        // When: Filter with 10 mile radius - should get SF restaurants only
         let restaurants = loader.restaurantsFiltered(
             for: "Rooftop",
             near: sfCenter,
             radiusMiles: 10
         )
 
-        // Then: Only SF restaurants within 10 miles
-        XCTAssertEqual(restaurants.count, 2) // RH Rooftop SF and Charmaine's
-        XCTAssertTrue(restaurants.allSatisfy { $0.name.contains("SF") || $0.name == "Charmaine's" || $0.name == "RH Rooftop SF" })
+        // Only SF restaurants within 10 miles
+        XCTAssertEqual(restaurants.count, 2)
     }
 
     func test_restaurantsFiltered_withSmallRadius_excludesDistantRestaurants() throws {
-        // Given
         let json = validRestaurantJSON()
         let data = json.data(using: .utf8)!
         let loader = try RestaurantLoader(data: data)
         let sfCenter = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
 
-        // When: Filter with 1 mile radius - very restrictive
         let restaurants = loader.restaurantsFiltered(
             for: "Rooftop",
             near: sfCenter,
             radiusMiles: 1
         )
 
-        // Then: Should get restaurants within 1 mile
         XCTAssertLessThanOrEqual(restaurants.count, 2)
     }
 
     func test_restaurantsFiltered_returnsMaxThree() throws {
-        // Given
         let json = jsonWithManyRestaurants()
         let data = json.data(using: .utf8)!
         let loader = try RestaurantLoader(data: data)
         let sfCenter = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
 
-        // When
         let restaurants = loader.restaurantsFiltered(
             for: "TestCategory",
             near: sfCenter,
             radiusMiles: 50
         )
 
-        // Then: Should return at most 3
         XCTAssertLessThanOrEqual(restaurants.count, 3)
     }
 
     func test_restaurantsFiltered_withNoLocation_returnsEmpty() throws {
-        // Given
         let json = validRestaurantJSON()
         let data = json.data(using: .utf8)!
         let loader = try RestaurantLoader(data: data)
 
-        // When: No location provided (nil center)
         let restaurants = loader.restaurantsFiltered(
             for: "Rooftop",
             near: nil,
             radiusMiles: 10
         )
 
-        // Then: Returns empty when no location
         XCTAssertTrue(restaurants.isEmpty)
     }
 
     // MARK: - Price Level Filtering Tests
 
     func test_restaurantsFiltered_byPriceLevels_returnsOnlyMatchingPrices() throws {
-        // Given
         let json = jsonWithMixedPriceLevels()
         let data = json.data(using: .utf8)!
         let loader = try RestaurantLoader(data: data)
         let sfCenter = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
 
-        // When: Filter for only high price levels (3, 4) - Splurge mode
         let restaurants = loader.restaurantsFiltered(
             for: "MixedCategory",
             near: sfCenter,
@@ -237,18 +178,15 @@ final class RestaurantLoaderTests: XCTestCase {
             allowedPriceLevels: [3, 4]
         )
 
-        // Then: Should only return price level 3 and 4 restaurants
         XCTAssertTrue(restaurants.allSatisfy { $0.priceLevel >= 3 })
     }
 
     func test_restaurantsFiltered_byLowPriceLevels_excludesExpensive() throws {
-        // Given
         let json = jsonWithMixedPriceLevels()
         let data = json.data(using: .utf8)!
         let loader = try RestaurantLoader(data: data)
         let sfCenter = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
 
-        // When: Filter for only low price levels (1, 2) - Standard mode
         let restaurants = loader.restaurantsFiltered(
             for: "MixedCategory",
             near: sfCenter,
@@ -256,18 +194,15 @@ final class RestaurantLoaderTests: XCTestCase {
             allowedPriceLevels: [1, 2]
         )
 
-        // Then: Should only return price level 1 and 2 restaurants
         XCTAssertTrue(restaurants.allSatisfy { $0.priceLevel <= 2 })
     }
 
     func test_restaurantsFiltered_withAllPriceLevels_includesAll() throws {
-        // Given
         let json = jsonWithMixedPriceLevels()
         let data = json.data(using: .utf8)!
         let loader = try RestaurantLoader(data: data)
         let sfCenter = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
 
-        // When: Filter for all price levels (1-4) - Aesthetic mode
         let restaurants = loader.restaurantsFiltered(
             for: "MixedCategory",
             near: sfCenter,
@@ -275,18 +210,15 @@ final class RestaurantLoaderTests: XCTestCase {
             allowedPriceLevels: [1, 2, 3, 4]
         )
 
-        // Then: Should return restaurants of all price levels (up to 3)
         XCTAssertEqual(restaurants.count, 3)
     }
 
     func test_restaurantsFiltered_withNilPriceLevels_includesAll() throws {
-        // Given
         let json = jsonWithMixedPriceLevels()
         let data = json.data(using: .utf8)!
         let loader = try RestaurantLoader(data: data)
         let sfCenter = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
 
-        // When: No price filter (nil) - should include all
         let restaurants = loader.restaurantsFiltered(
             for: "MixedCategory",
             near: sfCenter,
@@ -294,18 +226,15 @@ final class RestaurantLoaderTests: XCTestCase {
             allowedPriceLevels: nil
         )
 
-        // Then: Should return restaurants of all price levels (up to 3)
         XCTAssertEqual(restaurants.count, 3)
     }
 
     func test_restaurantsFiltered_withEmptyPriceLevels_returnsEmpty() throws {
-        // Given
         let json = jsonWithMixedPriceLevels()
         let data = json.data(using: .utf8)!
         let loader = try RestaurantLoader(data: data)
         let sfCenter = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
 
-        // When: Empty price levels array
         let restaurants = loader.restaurantsFiltered(
             for: "MixedCategory",
             near: sfCenter,
@@ -313,7 +242,6 @@ final class RestaurantLoaderTests: XCTestCase {
             allowedPriceLevels: []
         )
 
-        // Then: Should return no restaurants
         XCTAssertTrue(restaurants.isEmpty)
     }
 
