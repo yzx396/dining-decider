@@ -32,62 +32,65 @@ extension Color {
 }
 
 struct ThemeColors {
-    // Background & Surfaces
-    let background = Color(hex: "F0EFE9")
-    let cardBackground = Color.white
+    // MARK: - Adaptive Colors (Light/Dark Mode)
 
-    // Text
-    let title = Color(hex: "5E5B52")
-    let label = Color(hex: "999999")
-    let textPrimary = Color(hex: "333333")
-    let textSecondary = Color(hex: "FAFAFA")  // Off-white for dark backgrounds
+    /// Background color - warm cream in light mode, dark gray in dark mode
+    let background = Color("ThemeBackground")
 
-    // Interactive
-    let primaryButton = Color(hex: "C8A299")
-    let primaryButtonText = Color.white
-    let disabledButton = Color(hex: "DDDDDD")
-    let borderColor = Color(hex: "E0E0E0")
+    /// Card background - white in light mode, elevated surface in dark mode
+    let cardBackground = Color("ThemeCardBackground")
 
-    // Wheel
-    let wheelBorder = Color(hex: "EAE8E1")
-    let wheelCenter = Color.white
+    /// Title text color - muted charcoal in light mode, light gray in dark mode
+    let title = Color("ThemeTitle")
 
-    // Vibe: Aesthetic (8 colors for 8 sectors)
-    let vibeAesthetic = Color(hex: "D98880")
-    let aestheticWheelColors: [Color] = [
-        Color(hex: "E6B0AA"),  // Soft pink
-        Color(hex: "D98880"),  // Rose
-        Color(hex: "F1948A"),  // Coral pink
-        Color(hex: "C39BD3"),  // Lavender
-        Color(hex: "F5B7B1"),  // Light pink
-        Color(hex: "FAD7A0"),  // Peach
-        Color(hex: "E8DAEF"),  // Light purple
-        Color(hex: "D7BDE2")   // Soft purple
-    ]
+    /// Label text color - gray in light mode, medium gray in dark mode
+    let label = Color("ThemeLabel")
 
-    // Vibe: Splurge (6 colors)
-    let vibeSplurge = Color(hex: "884EA0")
-    let splurgeWheelColors: [Color] = [
-        Color(hex: "884EA0"),  // Deep purple
-        Color(hex: "AF7AC5"),  // Medium purple
-        Color(hex: "7D3C98"),  // Dark purple
-        Color(hex: "5B2C6F"),  // Deeper purple
-        Color(hex: "D2B4DE"),  // Light purple
-        Color(hex: "A569BD")   // Purple
-    ]
+    /// Primary text color - dark gray in light mode, near white in dark mode
+    let textPrimary = Color("ThemeTextPrimary")
 
-    // Vibe: Standard (8 colors)
-    let vibeStandard = Color(hex: "7F8C8D")
-    let standardWheelColors: [Color] = [
-        Color(hex: "A4B494"),  // Sage green
-        Color(hex: "DCC7AA"),  // Tan
-        Color(hex: "B5C0D0"),  // Blue gray
-        Color(hex: "E4B7B2"),  // Dusty rose
-        Color(hex: "C4C3D0"),  // Soft gray
-        Color(hex: "9FAEB5"),  // Steel blue
-        Color(hex: "D8DCD6"),  // Light gray
-        Color(hex: "C8A299")   // Warm gray
-    ]
+    /// Secondary text color - off-white for dark backgrounds (same in both modes)
+    let textSecondary = Color(hex: ThemeColorValues.TextSecondary.light)
+
+    /// Border color - light gray in light mode, dark separator in dark mode
+    let borderColor = Color("ThemeBorder")
+
+    /// Wheel border - beige in light mode, dark border in dark mode
+    let wheelBorder = Color("ThemeWheelBorder")
+
+    /// Wheel center - white in light mode, dark gray in dark mode
+    let wheelCenter = Color("ThemeWheelCenter")
+
+    /// Disabled button color - adapts to mode
+    let disabledButton = Color("ThemeDisabledButton")
+
+    // MARK: - Brand Colors (Same in Both Modes)
+
+    /// Primary button color - dusty rose
+    let primaryButton = Color(hex: ThemeColorValues.PrimaryButton.light)
+
+    /// Primary button text - white
+    let primaryButtonText = Color(hex: ThemeColorValues.PrimaryButtonText.light)
+
+    // MARK: - Vibe Colors (Same in Both Modes - Brand Identity)
+
+    /// Aesthetic vibe color - rose/coral
+    let vibeAesthetic = Color(hex: ThemeColorValues.VibeAesthetic.color)
+
+    /// Aesthetic wheel colors - 8 pastel colors
+    let aestheticWheelColors: [Color] = ThemeColorValues.aestheticWheelColors.map { Color(hex: $0) }
+
+    /// Splurge vibe color - deep purple
+    let vibeSplurge = Color(hex: ThemeColorValues.VibeSplurge.color)
+
+    /// Splurge wheel colors - 6 purple colors
+    let splurgeWheelColors: [Color] = ThemeColorValues.splurgeWheelColors.map { Color(hex: $0) }
+
+    /// Standard vibe color - muted gray
+    let vibeStandard = Color(hex: ThemeColorValues.VibeStandard.color)
+
+    /// Standard wheel colors - 8 neutral/sage colors
+    let standardWheelColors: [Color] = ThemeColorValues.standardWheelColors.map { Color(hex: $0) }
 }
 
 // MARK: - Luminance & Contrast
