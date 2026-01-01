@@ -1,4 +1,3 @@
-import CoreLocation
 import MapKit
 
 // MARK: - Error Types
@@ -52,10 +51,9 @@ protocol GeocodingProviding {
 
 // MARK: - Implementation
 
-/// Geocoding service using Apple's CLGeocoder and MKLocalSearchCompleter
+/// Geocoding service using Apple's MKLocalSearch and MKLocalSearchCompleter
 final class GeocodingService: NSObject, GeocodingProviding {
 
-    private let geocoder = CLGeocoder()
     private var completer: MKLocalSearchCompleter?
     private var completionContinuation: CheckedContinuation<[LocationSuggestion], Error>?
 
@@ -69,20 +67,21 @@ final class GeocodingService: NSObject, GeocodingProviding {
         }
 
         do {
-            let placemarks = try await geocoder.geocodeAddressString(address)
+            let request = MKLocalSearch.Request()
+            request.naturalLanguageQuery = address
+            request.resultTypes = .address
 
-            guard let placemark = placemarks.first,
-                  let location = placemark.location else {
+            let search = MKLocalSearch(request: request)
+            let response = try await search.start()
+
+            guard let mapItem = response.mapItems.first else {
                 throw GeocodingError.noResults
             }
 
-            return location.coordinate
+            return mapItem.location.coordinate
         } catch let error as GeocodingError {
             throw error
         } catch {
-            if (error as NSError).domain == kCLErrorDomain {
-                throw GeocodingError.noResults
-            }
             throw GeocodingError.networkError
         }
     }

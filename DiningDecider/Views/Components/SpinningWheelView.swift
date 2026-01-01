@@ -223,7 +223,6 @@ struct SpinningWheelView: View {
 
         // Calculate landing sector and notify
         let sectorIndex = WheelMath.landingSector(rotation: rotation, sectorCount: sectors.count)
-        print("🎡 DEBUG: rotation=\(rotation), sectorCount=\(sectors.count), sectorIndex=\(sectorIndex), label=\(sectors[sectorIndex].label)")
         onSpinComplete?(sectorIndex)
     }
 
