@@ -2,11 +2,16 @@ import SwiftUI
 import CoreLocation
 import DiningDeciderCore
 
+/// Holds the result of a wheel spin for sheet presentation
+struct SpinResult: Identifiable {
+    let id = UUID()
+    let category: String
+    let restaurants: [Restaurant]
+}
+
 struct ContentView: View {
     @State private var rotation: Double = 0
-    @State private var showResults = false
-    @State private var landedCategory = "Rooftop"
-    @State private var landedRestaurants: [Restaurant] = []
+    @State private var spinResult: SpinResult?  // nil until spin completes
     @State private var locationManager = LocationManager()
     @State private var searchRadius: SearchRadius = .defaultRadius
 
@@ -117,13 +122,13 @@ struct ContentView: View {
                 .padding(.bottom, 24)
             }
         }
-        .sheet(isPresented: $showResults) {
+        .sheet(item: $spinResult) { result in
             ResultsView(
-                category: landedCategory,
-                restaurants: landedRestaurants,
+                category: result.category,
+                restaurants: result.restaurants,
                 partySize: partySize,
                 onSpinAgain: {
-                    showResults = false
+                    spinResult = nil
                 }
             )
             .presentationDetents([.large])
@@ -141,26 +146,28 @@ struct ContentView: View {
     }
 
     private func handleSpinComplete(sectorIndex: Int) {
-        landedCategory = sectors[sectorIndex].label
+        let category = sectors[sectorIndex].label
 
         // Get restaurants filtered by location and price level
+        let restaurants: [Restaurant]
         if hasValidLocation, let location = activeLocation {
-            landedRestaurants = restaurantLoader.restaurantsFiltered(
-                for: landedCategory,
+            restaurants = restaurantLoader.restaurantsFiltered(
+                for: category,
                 near: location,
                 radiusMiles: searchRadius.miles,
                 allowedPriceLevels: selectedVibe.allowedPriceLevels
             )
         } else {
             // Fallback: filter by price level only (no location)
-            let allRestaurants = restaurantLoader.restaurants(for: landedCategory)
+            let allRestaurants = restaurantLoader.restaurants(for: category)
             let filteredByPrice = allRestaurants.filter { restaurant in
                 selectedVibe.allowsPriceLevel(restaurant.priceLevel)
             }
-            landedRestaurants = filteredByPrice.shuffled().prefix(3).map { $0 }
+            restaurants = filteredByPrice.shuffled().prefix(3).map { $0 }
         }
 
-        showResults = true
+        // Create result with fresh data - sheet(item:) ensures this is used
+        spinResult = SpinResult(category: category, restaurants: restaurants)
     }
 }
 
