@@ -62,10 +62,10 @@ struct PartySizeStepper: View {
 
     private var sizeDisplay: some View {
         Text("\(partySize)")
-            .font(.title2)
+            .font(.caption)
             .fontWeight(.medium)
             .foregroundColor(Color.theme.textPrimary)
-            .frame(minWidth: 40)
+            .frame(minWidth: 24)
             .accessibilityLabel("Party size: \(partySize) \(partySize == 1 ? "person" : "people")")
     }
 

@@ -72,8 +72,8 @@ struct ControlsCard: View {
                 .font(.caption)
                 .foregroundColor(Color.theme.primaryButton)
 
-            Text("Current Location")
-                .font(.subheadline)
+            Text("Current")
+                .font(.caption)
                 .fontWeight(.medium)
                 .foregroundColor(Color.theme.textPrimary)
 
@@ -102,10 +102,10 @@ struct ControlsCard: View {
             Button(action: onRequestLocation) {
                 HStack(spacing: 8) {
                     Image(systemName: "location")
-                        .font(.subheadline)
+                        .font(.caption)
 
                     Text("Use Current Location")
-                        .font(.subheadline)
+                        .font(.caption)
                         .fontWeight(.medium)
 
                     Spacer()
@@ -182,7 +182,7 @@ struct ControlsCard: View {
                 .foregroundColor(Color.theme.primaryButton)
 
             Text(name)
-                .font(.subheadline)
+                .font(.caption)
                 .fontWeight(.medium)
                 .foregroundColor(Color.theme.textPrimary)
                 .lineLimit(1)

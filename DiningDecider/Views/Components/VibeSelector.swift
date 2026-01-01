@@ -35,14 +35,16 @@ private struct VibeButton: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 4) {
+            HStack(alignment: .center, spacing: 4) {
                 Text(vibe.emoji)
+                    .font(.caption)
                 Text(vibe.displayName)
-                    .font(.subheadline)
+                    .font(.caption)
                     .fontWeight(.medium)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 10)
+            .padding(.horizontal, 6)
             .background(isSelected ? vibe.selectedColor : Color.theme.cardBackground)
             .foregroundColor(isSelected ? .white : Color.theme.textPrimary)
             .clipShape(Capsule())
