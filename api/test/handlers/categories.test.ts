@@ -5,6 +5,7 @@ import { describe, it, expect, beforeAll } from "vitest";
 import { env } from "cloudflare:test";
 import { handleCategories } from "../../src/handlers/categories";
 import { HTTP_OK } from "../../src/constants";
+import type { ApiResponse, CategoriesData } from "../../src/types";
 
 describe("handleCategories", () => {
   // Seed test data before tests
@@ -45,14 +46,14 @@ describe("handleCategories", () => {
 
   it("returns success: true in response body", async () => {
     const response = await handleCategories(env.DB);
-    const body = await response.json();
+    const body = (await response.json()) as ApiResponse<CategoriesData>;
 
     expect(body).toHaveProperty("success", true);
   });
 
   it("returns array of categories", async () => {
     const response = await handleCategories(env.DB);
-    const body = await response.json();
+    const body = (await response.json()) as ApiResponse<CategoriesData>;
 
     expect(body).toHaveProperty("data");
     expect(body.data).toHaveProperty("categories");
@@ -61,7 +62,7 @@ describe("handleCategories", () => {
 
   it("returns categories with correct structure", async () => {
     const response = await handleCategories(env.DB);
-    const body = await response.json();
+    const body = (await response.json()) as ApiResponse<CategoriesData>;
 
     const category = body.data.categories[0];
     expect(category).toHaveProperty("id");
@@ -72,28 +73,26 @@ describe("handleCategories", () => {
 
   it("filters categories by vibeMode when provided", async () => {
     const response = await handleCategories(env.DB, "aesthetic");
-    const body = await response.json();
+    const body = (await response.json()) as ApiResponse<CategoriesData>;
 
     expect(body.data.categories.length).toBe(2);
-    body.data.categories.forEach((cat: { vibeMode: string }) => {
+    body.data.categories.forEach((cat) => {
       expect(cat.vibeMode).toBe("aesthetic");
     });
   });
 
   it("returns all categories when vibeMode not provided", async () => {
     const response = await handleCategories(env.DB);
-    const body = await response.json();
+    const body = (await response.json()) as ApiResponse<CategoriesData>;
 
     expect(body.data.categories.length).toBeGreaterThanOrEqual(6);
   });
 
   it("orders categories by display_order", async () => {
     const response = await handleCategories(env.DB, "aesthetic");
-    const body = await response.json();
+    const body = (await response.json()) as ApiResponse<CategoriesData>;
 
-    const orders = body.data.categories.map(
-      (c: { displayOrder: number }) => c.displayOrder,
-    );
+    const orders = body.data.categories.map((c) => c.displayOrder);
     const sorted = [...orders].sort((a, b) => a - b);
     expect(orders).toEqual(sorted);
   });

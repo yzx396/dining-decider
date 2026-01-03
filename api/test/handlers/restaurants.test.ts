@@ -5,28 +5,47 @@ import { describe, it, expect, beforeAll } from "vitest";
 import { env } from "cloudflare:test";
 import { handleRestaurants } from "../../src/handlers/restaurants";
 import { HTTP_OK, HTTP_BAD_REQUEST } from "../../src/constants";
+import type { ApiResponse, RestaurantsData } from "../../src/types";
 
 describe("handleRestaurants", () => {
   // Seed test data before tests
   beforeAll(async () => {
     // Add categories
     await env.DB.batch([
-      env.DB.prepare(`INSERT OR REPLACE INTO categories (id, name, vibe_mode, display_order) VALUES (1, 'Garden Cafe', 'aesthetic', 1)`),
-      env.DB.prepare(`INSERT OR REPLACE INTO categories (id, name, vibe_mode, display_order) VALUES (2, 'Steakhouse', 'splurge', 1)`),
-      env.DB.prepare(`INSERT OR REPLACE INTO categories (id, name, vibe_mode, display_order) VALUES (3, 'Hot Pot', 'standard', 1)`),
+      env.DB.prepare(
+        `INSERT OR REPLACE INTO categories (id, name, vibe_mode, display_order) VALUES (1, 'Garden Cafe', 'aesthetic', 1)`,
+      ),
+      env.DB.prepare(
+        `INSERT OR REPLACE INTO categories (id, name, vibe_mode, display_order) VALUES (2, 'Steakhouse', 'splurge', 1)`,
+      ),
+      env.DB.prepare(
+        `INSERT OR REPLACE INTO categories (id, name, vibe_mode, display_order) VALUES (3, 'Hot Pot', 'standard', 1)`,
+      ),
     ]);
 
     // Add restaurants - SF area (37.7749, -122.4194)
     await env.DB.batch([
       // Garden Cafe restaurants (category 1) - SF area
-      env.DB.prepare(`INSERT OR REPLACE INTO restaurants (id, name, lat, lng, category_id, price_level, average_cost, description, parking, map_query) VALUES ('r1', 'The Gardenia', 37.7749, -122.4194, 1, 2, 35, 'Garden vibes', 'Street', 'The Gardenia SF')`),
-      env.DB.prepare(`INSERT OR REPLACE INTO restaurants (id, name, lat, lng, category_id, price_level, average_cost, description, parking, map_query) VALUES ('r2', 'Stable Cafe', 37.7550, -122.4194, 1, 2, 25, 'Hidden gem', 'Street', 'Stable Cafe SF')`),
-      env.DB.prepare(`INSERT OR REPLACE INTO restaurants (id, name, lat, lng, category_id, price_level, average_cost, description, parking, map_query) VALUES ('r3', 'Far Away Garden', 34.0522, -118.2437, 1, 2, 30, 'LA spot', 'Valet', 'Far Away Garden LA')`),
+      env.DB.prepare(
+        `INSERT OR REPLACE INTO restaurants (id, name, lat, lng, category_id, price_level, average_cost, description, parking, map_query) VALUES ('r1', 'The Gardenia', 37.7749, -122.4194, 1, 2, 35, 'Garden vibes', 'Street', 'The Gardenia SF')`,
+      ),
+      env.DB.prepare(
+        `INSERT OR REPLACE INTO restaurants (id, name, lat, lng, category_id, price_level, average_cost, description, parking, map_query) VALUES ('r2', 'Stable Cafe', 37.7550, -122.4194, 1, 2, 25, 'Hidden gem', 'Street', 'Stable Cafe SF')`,
+      ),
+      env.DB.prepare(
+        `INSERT OR REPLACE INTO restaurants (id, name, lat, lng, category_id, price_level, average_cost, description, parking, map_query) VALUES ('r3', 'Far Away Garden', 34.0522, -118.2437, 1, 2, 30, 'LA spot', 'Valet', 'Far Away Garden LA')`,
+      ),
       // Steakhouse restaurants (category 2)
-      env.DB.prepare(`INSERT OR REPLACE INTO restaurants (id, name, lat, lng, category_id, price_level, average_cost, description, parking, map_query) VALUES ('r4', 'Prime Rib House', 37.7897, -122.4209, 2, 3, 70, 'Classic', 'Valet', 'Prime Rib House SF')`),
-      env.DB.prepare(`INSERT OR REPLACE INTO restaurants (id, name, lat, lng, category_id, price_level, average_cost, description, parking, map_query) VALUES ('r5', 'Luxury Steak', 37.7800, -122.4100, 2, 4, 150, 'Premium', 'Valet', 'Luxury Steak SF')`),
+      env.DB.prepare(
+        `INSERT OR REPLACE INTO restaurants (id, name, lat, lng, category_id, price_level, average_cost, description, parking, map_query) VALUES ('r4', 'Prime Rib House', 37.7897, -122.4209, 2, 3, 70, 'Classic', 'Valet', 'Prime Rib House SF')`,
+      ),
+      env.DB.prepare(
+        `INSERT OR REPLACE INTO restaurants (id, name, lat, lng, category_id, price_level, average_cost, description, parking, map_query) VALUES ('r5', 'Luxury Steak', 37.7800, -122.4100, 2, 4, 150, 'Premium', 'Valet', 'Luxury Steak SF')`,
+      ),
       // Hot Pot (category 3) - budget option
-      env.DB.prepare(`INSERT OR REPLACE INTO restaurants (id, name, lat, lng, category_id, price_level, average_cost, description, parking, map_query) VALUES ('r6', 'Hot Pot Palace', 37.7872, -122.4077, 3, 1, 25, 'AYCE', 'Mall', 'Hot Pot Palace SF')`),
+      env.DB.prepare(
+        `INSERT OR REPLACE INTO restaurants (id, name, lat, lng, category_id, price_level, average_cost, description, parking, map_query) VALUES ('r6', 'Hot Pot Palace', 37.7872, -122.4077, 3, 1, 25, 'AYCE', 'Mall', 'Hot Pot Palace SF')`,
+      ),
     ]);
   });
 
@@ -75,7 +94,7 @@ describe("handleRestaurants", () => {
     it("returns success: true in response body", async () => {
       const params = { category: "Garden Cafe", lat: sfLat, lng: sfLng };
       const response = await handleRestaurants(env.DB, params);
-      const body = await response.json();
+      const body = (await response.json()) as ApiResponse<RestaurantsData>;
 
       expect(body).toHaveProperty("success", true);
     });
@@ -83,7 +102,7 @@ describe("handleRestaurants", () => {
     it("returns restaurants array in data", async () => {
       const params = { category: "Garden Cafe", lat: sfLat, lng: sfLng };
       const response = await handleRestaurants(env.DB, params);
-      const body = await response.json();
+      const body = (await response.json()) as ApiResponse<RestaurantsData>;
 
       expect(body.data).toHaveProperty("restaurants");
       expect(Array.isArray(body.data.restaurants)).toBe(true);
@@ -94,11 +113,11 @@ describe("handleRestaurants", () => {
     it("returns only restaurants from the specified category", async () => {
       const params = { category: "Garden Cafe", lat: sfLat, lng: sfLng };
       const response = await handleRestaurants(env.DB, params);
-      const body = await response.json();
+      const body = (await response.json()) as ApiResponse<RestaurantsData>;
 
       expect(body.data.category).toBe("Garden Cafe");
       // Should only get Garden Cafe restaurants
-      body.data.restaurants.forEach((r: any) => {
+      body.data.restaurants.forEach((r) => {
         expect(r.categoryName).toBe("Garden Cafe");
       });
     });
@@ -108,18 +127,23 @@ describe("handleRestaurants", () => {
     it("returns only restaurants within default radius (10 miles)", async () => {
       const params = { category: "Garden Cafe", lat: sfLat, lng: sfLng };
       const response = await handleRestaurants(env.DB, params);
-      const body = await response.json();
+      const body = (await response.json()) as ApiResponse<RestaurantsData>;
 
       // Should NOT include LA restaurant (r3) which is ~350 miles away
-      const names = body.data.restaurants.map((r: any) => r.name);
+      const names = body.data.restaurants.map((r) => r.name);
       expect(names).not.toContain("Far Away Garden");
     });
 
     it("respects custom radiusMiles parameter", async () => {
       // Use a very small radius that should exclude even nearby restaurants
-      const params = { category: "Garden Cafe", lat: sfLat, lng: sfLng, radiusMiles: 0.1 };
+      const params = {
+        category: "Garden Cafe",
+        lat: sfLat,
+        lng: sfLng,
+        radiusMiles: 0.1,
+      };
       const response = await handleRestaurants(env.DB, params);
-      const body = await response.json();
+      const body = (await response.json()) as ApiResponse<RestaurantsData>;
 
       // With 0.1 mile radius, only The Gardenia (same location) should be included
       expect(body.data.restaurants.length).toBeLessThanOrEqual(1);
@@ -130,19 +154,24 @@ describe("handleRestaurants", () => {
     it("returns all price levels when not specified", async () => {
       const params = { category: "Steakhouse", lat: sfLat, lng: sfLng };
       const response = await handleRestaurants(env.DB, params);
-      const body = await response.json();
+      const body = (await response.json()) as ApiResponse<RestaurantsData>;
 
-      const priceLevels = body.data.restaurants.map((r: any) => r.priceLevel);
+      const priceLevels = body.data.restaurants.map((r) => r.priceLevel);
       // Should include both price level 3 and 4
       expect(priceLevels.length).toBeGreaterThan(0);
     });
 
     it("filters by specified price levels", async () => {
-      const params = { category: "Steakhouse", lat: sfLat, lng: sfLng, priceLevels: [3] };
+      const params = {
+        category: "Steakhouse",
+        lat: sfLat,
+        lng: sfLng,
+        priceLevels: [3],
+      };
       const response = await handleRestaurants(env.DB, params);
-      const body = await response.json();
+      const body = (await response.json()) as ApiResponse<RestaurantsData>;
 
-      body.data.restaurants.forEach((r: any) => {
+      body.data.restaurants.forEach((r) => {
         expect(r.priceLevel).toBe(3);
       });
     });
@@ -150,9 +179,14 @@ describe("handleRestaurants", () => {
 
   describe("limit", () => {
     it("respects limit parameter", async () => {
-      const params = { category: "Garden Cafe", lat: sfLat, lng: sfLng, limit: 1 };
+      const params = {
+        category: "Garden Cafe",
+        lat: sfLat,
+        lng: sfLng,
+        limit: 1,
+      };
       const response = await handleRestaurants(env.DB, params);
-      const body = await response.json();
+      const body = (await response.json()) as ApiResponse<RestaurantsData>;
 
       expect(body.data.restaurants.length).toBeLessThanOrEqual(1);
     });
@@ -160,7 +194,7 @@ describe("handleRestaurants", () => {
     it("defaults to limit of 3", async () => {
       const params = { category: "Garden Cafe", lat: sfLat, lng: sfLng };
       const response = await handleRestaurants(env.DB, params);
-      const body = await response.json();
+      const body = (await response.json()) as ApiResponse<RestaurantsData>;
 
       expect(body.data.restaurants.length).toBeLessThanOrEqual(3);
     });
@@ -170,7 +204,7 @@ describe("handleRestaurants", () => {
     it("returns restaurants with correct fields", async () => {
       const params = { category: "Garden Cafe", lat: sfLat, lng: sfLng };
       const response = await handleRestaurants(env.DB, params);
-      const body = await response.json();
+      const body = (await response.json()) as ApiResponse<RestaurantsData>;
 
       if (body.data.restaurants.length > 0) {
         const restaurant = body.data.restaurants[0];
@@ -191,9 +225,9 @@ describe("handleRestaurants", () => {
     it("includes distance in miles for each restaurant", async () => {
       const params = { category: "Garden Cafe", lat: sfLat, lng: sfLng };
       const response = await handleRestaurants(env.DB, params);
-      const body = await response.json();
+      const body = (await response.json()) as ApiResponse<RestaurantsData>;
 
-      body.data.restaurants.forEach((r: any) => {
+      body.data.restaurants.forEach((r) => {
         expect(typeof r.distance).toBe("number");
         expect(r.distance).toBeGreaterThanOrEqual(0);
       });

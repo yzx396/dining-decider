@@ -4,6 +4,7 @@
 import { describe, it, expect } from "vitest";
 import { handleHealth } from "../../src/handlers/health";
 import { HTTP_OK } from "../../src/constants";
+import type { ApiResponse, HealthData } from "../../src/types";
 
 describe("handleHealth", () => {
   it("returns 200 OK status", async () => {
@@ -20,14 +21,14 @@ describe("handleHealth", () => {
 
   it("returns success: true in response body", async () => {
     const response = await handleHealth();
-    const body = await response.json();
+    const body = (await response.json()) as ApiResponse<HealthData>;
 
     expect(body).toHaveProperty("success", true);
   });
 
   it("returns health data with status", async () => {
     const response = await handleHealth();
-    const body = await response.json();
+    const body = (await response.json()) as ApiResponse<HealthData>;
 
     expect(body).toHaveProperty("data");
     expect(body.data).toHaveProperty("status", "healthy");
@@ -35,7 +36,7 @@ describe("handleHealth", () => {
 
   it("returns health data with version", async () => {
     const response = await handleHealth();
-    const body = await response.json();
+    const body = (await response.json()) as ApiResponse<HealthData>;
 
     expect(body.data).toHaveProperty("version");
     expect(typeof body.data.version).toBe("string");
@@ -43,7 +44,7 @@ describe("handleHealth", () => {
 
   it("returns health data with timestamp", async () => {
     const response = await handleHealth();
-    const body = await response.json();
+    const body = (await response.json()) as ApiResponse<HealthData>;
 
     expect(body.data).toHaveProperty("timestamp");
     // Verify it's a valid ISO date string

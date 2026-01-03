@@ -2,8 +2,12 @@
  * Auth middleware tests (TDD - written first)
  */
 import { describe, it, expect } from "vitest";
-import { validateApiKey, createAuthMiddleware } from "../../src/middleware/auth";
+import {
+  validateApiKey,
+  createAuthMiddleware,
+} from "../../src/middleware/auth";
 import { HTTP_UNAUTHORIZED } from "../../src/constants";
+import type { ApiError } from "../../src/types";
 
 describe("validateApiKey", () => {
   const validApiKey = "test-api-key-12345";
@@ -92,7 +96,7 @@ describe("createAuthMiddleware", () => {
     const result = middleware(request);
     expect(result).not.toBeNull();
 
-    const body = await result!.json();
+    const body = (await result!.json()) as ApiError;
     expect(body).toHaveProperty("success", false);
     expect(body).toHaveProperty("error");
     expect(body.error).toHaveProperty("code", "UNAUTHORIZED");
