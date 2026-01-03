@@ -3,10 +3,10 @@ import CoreLocation
 @testable import DiningDecider
 import DiningDeciderCore
 
-final class MockAPIService: RestaurantAPIProviding {
+final class MockAPIService: RestaurantAPIProviding, @unchecked Sendable {
 
     var stubbedRestaurants: [Restaurant] = []
-    var stubbedCategories: [String] = []
+    var stubbedCategories: [APICategory] = []
     var errorToThrow: APIError?
 
     // Track calls for verification
@@ -16,6 +16,7 @@ final class MockAPIService: RestaurantAPIProviding {
     var lastLocation: CLLocationCoordinate2D?
     var lastRadiusMiles: Double?
     var lastPriceLevels: [Int]?
+    var lastVibeMode: String?
 
     func fetchRestaurants(
         category: String,
@@ -36,8 +37,9 @@ final class MockAPIService: RestaurantAPIProviding {
         return stubbedRestaurants
     }
 
-    func fetchCategories() async throws -> [String] {
+    func fetchCategories(vibeMode: String?) async throws -> [APICategory] {
         fetchCategoriesCalled = true
+        lastVibeMode = vibeMode
 
         if let error = errorToThrow {
             throw error
@@ -56,5 +58,6 @@ final class MockAPIService: RestaurantAPIProviding {
         lastLocation = nil
         lastRadiusMiles = nil
         lastPriceLevels = nil
+        lastVibeMode = nil
     }
 }

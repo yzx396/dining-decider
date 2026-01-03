@@ -5,22 +5,31 @@ import DiningDeciderCore
 // MARK: - Configuration
 
 enum APIConfig {
+    // Development defaults - used when Info.plist values aren't set
+    #if DEBUG
+    private static let devBaseURL = "http://localhost:8787"
+    private static let devAPIKey = "dev-api-key-12345"
+    #else
+    private static let devBaseURL = ""
+    private static let devAPIKey = ""
+    #endif
+
     static var baseURL: String {
-        guard let url = Bundle.main.infoDictionary?["API_BASE_URL"] as? String,
-              !url.isEmpty,
-              !url.contains("$(") else {
-            return ""
+        if let url = Bundle.main.infoDictionary?["API_BASE_URL"] as? String,
+           !url.isEmpty,
+           !url.contains("$(") {
+            return url
         }
-        return url
+        return devBaseURL
     }
 
     static var apiKey: String {
-        guard let key = Bundle.main.infoDictionary?["API_KEY"] as? String,
-              !key.isEmpty,
-              !key.contains("$(") else {
-            return ""
+        if let key = Bundle.main.infoDictionary?["API_KEY"] as? String,
+           !key.isEmpty,
+           !key.contains("$(") {
+            return key
         }
-        return key
+        return devAPIKey
     }
 
     static var isConfigured: Bool {
@@ -66,7 +75,7 @@ protocol RestaurantAPIProviding: Sendable {
         priceLevels: [Int]?
     ) async throws -> [Restaurant]
 
-    func fetchCategories() async throws -> [String]
+    func fetchCategories(vibeMode: String?) async throws -> [APICategory]
 }
 
 // MARK: - Implementation
@@ -97,7 +106,7 @@ final class APIService: RestaurantAPIProviding, @unchecked Sendable {
             throw APIError.notConfigured
         }
 
-        var components = URLComponents(string: "\(baseURL)/restaurants")
+        var components = URLComponents(string: "\(baseURL)/v1/restaurants")
         components?.queryItems = [
             URLQueryItem(name: "category", value: category),
             URLQueryItem(name: "lat", value: String(location.latitude)),
@@ -119,20 +128,27 @@ final class APIService: RestaurantAPIProviding, @unchecked Sendable {
         }
 
         let response: RestaurantsAPIResponse = try await request(url: url)
-        return response.data
+        return response.data.restaurants.map { $0.toCoreModel() }
     }
 
-    func fetchCategories() async throws -> [String] {
+    func fetchCategories(vibeMode: String? = nil) async throws -> [APICategory] {
         guard !baseURL.isEmpty, !apiKey.isEmpty else {
             throw APIError.notConfigured
         }
 
-        guard let url = URL(string: "\(baseURL)/categories") else {
+        var components = URLComponents(string: "\(baseURL)/v1/categories")
+        if let vibeMode = vibeMode {
+            components?.queryItems = [
+                URLQueryItem(name: "vibeMode", value: vibeMode)
+            ]
+        }
+
+        guard let url = components?.url else {
             throw APIError.invalidURL
         }
 
         let response: CategoriesAPIResponse = try await request(url: url)
-        return response.data
+        return response.data.categories
     }
 
     // MARK: - Private
@@ -172,14 +188,85 @@ final class APIService: RestaurantAPIProviding, @unchecked Sendable {
     }
 }
 
-// MARK: - Response Types
+// MARK: - API Response Types
 
 private struct RestaurantsAPIResponse: Decodable {
     let success: Bool
-    let data: [Restaurant]
+    let data: RestaurantsData
+}
+
+private struct RestaurantsData: Decodable {
+    let category: String
+    let restaurants: [APIRestaurant]
+    let total: Int
 }
 
 private struct CategoriesAPIResponse: Decodable {
     let success: Bool
-    let data: [String]
+    let data: CategoriesData
+}
+
+private struct CategoriesData: Decodable {
+    let categories: [APICategory]
+}
+
+// MARK: - API Models
+
+/// Restaurant model from API (uses String ID)
+struct APIRestaurant: Decodable {
+    let id: String
+    let name: String
+    let lat: Double
+    let lng: Double
+    let priceLevel: Int
+    let averageCost: Int
+    let description: String
+    let parking: String
+    let mapQuery: String
+    let categoryId: Int
+    let categoryName: String
+    let distance: Double?
+
+    /// Converts API restaurant to Core Restaurant model
+    func toCoreModel() -> Restaurant {
+        // Generate deterministic UUID from string ID for consistency
+        let uuid = UUID(uuidString: id) ?? UUID(uuidString: id.sha256UUID()) ?? UUID()
+        return Restaurant(
+            id: uuid,
+            name: name,
+            lat: lat,
+            lng: lng,
+            priceLevel: priceLevel,
+            averageCost: averageCost,
+            description: description,
+            parking: parking,
+            mapQuery: mapQuery
+        )
+    }
+}
+
+/// Category model from API
+struct APICategory: Decodable {
+    let id: Int
+    let name: String
+    let vibeMode: String
+    let displayOrder: Int
+}
+
+// MARK: - String Extension for UUID Generation
+
+private extension String {
+    /// Creates a deterministic UUID-like string from any string
+    func sha256UUID() -> String {
+        // Simple hash-based UUID generation for string IDs
+        var hash: UInt64 = 5381
+        for char in self.utf8 {
+            hash = ((hash << 5) &+ hash) &+ UInt64(char)
+        }
+        let hex = String(format: "%016llx", hash)
+        // Format as UUID: xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx
+        let padded = hex.padding(toLength: 32, withPad: "0", startingAt: 0)
+        let chars = Array(padded)
+        return "\(String(chars[0..<8]))-\(String(chars[8..<12]))-4\(String(chars[13..<16]))-8\(String(chars[17..<20]))-\(String(chars[20..<32]))"
+    }
 }
