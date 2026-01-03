@@ -298,6 +298,8 @@
 /* Begin XCBuildConfiguration section */
 		2F6C469E2F0507CC00482DD3 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 2F6C46812F0507CB00482DD3 /* DiningDecider */;
+			baseConfigurationReferenceRelativePath = Config/Development.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -361,6 +363,8 @@
 		};
 		2F6C469F2F0507CC00482DD3 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 2F6C46812F0507CB00482DD3 /* DiningDecider */;
+			baseConfigurationReferenceRelativePath = Config/Production.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;

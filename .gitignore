@@ -44,3 +44,7 @@ playground.xcworkspace
 # Temporary files
 *.swp
 *~
+
+# API Keys and Secrets - NEVER COMMIT
+DiningDecider/Config/Development.xcconfig
+DiningDecider/Config/Production.xcconfig

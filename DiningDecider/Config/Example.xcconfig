@@ -1,0 +1,15 @@
+// Dining Decider API Configuration Template
+//
+// SETUP INSTRUCTIONS:
+// 1. Copy this file to Development.xcconfig and Production.xcconfig
+// 2. Fill in your actual API values
+// 3. Those files are gitignored and will not be committed
+//
+// XCODE SETUP:
+// 1. Select the project in navigator (not target)
+// 2. Go to Info tab > Configurations
+// 3. Set Debug to use Development.xcconfig
+// 4. Set Release to use Production.xcconfig
+
+API_BASE_URL = https:$()/)/your-worker.workers.dev
+API_KEY = your-api-key-here

@@ -75,14 +75,14 @@ export async function handleRequest(
     return authResponse;
   }
 
-  // Categories endpoint
-  if (path === "/categories" && method === "GET") {
+  // v1 Categories endpoint
+  if (path === "/v1/categories" && method === "GET") {
     const vibeMode = url.searchParams.get("vibeMode") as VibeMode | null;
     return handleCategories(env.DB, vibeMode ?? undefined);
   }
 
-  // Restaurants endpoint
-  if (path === "/restaurants" && method === "GET") {
+  // v1 Restaurants endpoint
+  if (path === "/v1/restaurants" && method === "GET") {
     const params = parseRestaurantsParams(url.searchParams);
     return handleRestaurants(env.DB, params as RestaurantsQueryParams);
   }

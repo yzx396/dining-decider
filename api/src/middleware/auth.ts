@@ -9,7 +9,7 @@ import { API_KEY_HEADER, HTTP_UNAUTHORIZED } from "../constants";
  */
 export function validateApiKey(
   providedKey: string | undefined | null,
-  expectedKey: string
+  expectedKey: string,
 ): boolean {
   if (!providedKey || typeof providedKey !== "string") {
     return false;
@@ -22,7 +22,7 @@ export function validateApiKey(
  * Returns null if authentication passes, or a 401 Response if it fails
  */
 export function createAuthMiddleware(
-  expectedApiKey: string
+  expectedApiKey: string,
 ): (request: Request) => Response | null {
   return (request: Request): Response | null => {
     const providedKey = request.headers.get(API_KEY_HEADER);
@@ -45,7 +45,7 @@ export function createAuthMiddleware(
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
   };
 }
