@@ -5,31 +5,22 @@ import DiningDeciderCore
 // MARK: - Configuration
 
 enum APIConfig {
-    // Development defaults - used when Info.plist values aren't set
-    #if DEBUG
-    private static let devBaseURL = "http://localhost:8787"
-    private static let devAPIKey = "dev-api-key-12345"
-    #else
-    private static let devBaseURL = ""
-    private static let devAPIKey = ""
-    #endif
-
     static var baseURL: String {
-        if let url = Bundle.main.infoDictionary?["API_BASE_URL"] as? String,
-           !url.isEmpty,
-           !url.contains("$(") {
-            return url
+        guard let url = Bundle.main.infoDictionary?["API_BASE_URL"] as? String,
+              !url.isEmpty,
+              !url.contains("$(") else {
+            return ""
         }
-        return devBaseURL
+        return url
     }
 
     static var apiKey: String {
-        if let key = Bundle.main.infoDictionary?["API_KEY"] as? String,
-           !key.isEmpty,
-           !key.contains("$(") {
-            return key
+        guard let key = Bundle.main.infoDictionary?["API_KEY"] as? String,
+              !key.isEmpty,
+              !key.contains("$(") else {
+            return ""
         }
-        return devAPIKey
+        return key
     }
 
     static var isConfigured: Bool {
