@@ -1,0 +1,22 @@
+name = "dining-decider-api"
+main = "src/index.ts"
+compatibility_date = "2024-12-18"
+compatibility_flags = ["nodejs_compat"]
+
+# D1 Database binding
+[[d1_databases]]
+binding = "DB"
+database_name = "dining-decider-db"
+database_id = "c8acf08e-716a-42b6-a959-214831680b7f"
+
+# KV namespace for caching
+[[kv_namespaces]]
+binding = "CACHE"
+id = "2e8f31889f024db3815c7cb5edc126ed"
+
+# For local development
+[vars]
+ENVIRONMENT = "development"
+
+# Note: API_KEY is set as a secret via `wrangler secret put API_KEY`
+# For local dev, use: wrangler dev --var API_KEY:dev-api-key-12345
