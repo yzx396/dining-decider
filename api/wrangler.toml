@@ -17,6 +17,7 @@ id = "2e8f31889f024db3815c7cb5edc126ed"
 # For local development
 [vars]
 ENVIRONMENT = "development"
-API_KEY = "dev-api-key-12345"
 
-# Note: For production, API_KEY is set as a secret via `wrangler secret put API_KEY`
+# API_KEY is set via:
+# - .dev.vars for local development (not committed)
+# - wrangler secret put API_KEY for production
