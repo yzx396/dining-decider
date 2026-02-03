@@ -222,4 +222,45 @@ final class SpinStateTests: XCTestCase {
         
         XCTAssertNil(state.pressStartTime)
     }
+    
+    // MARK: - Manual Stop Completion Tests (Bug: Popup not showing on manual stop)
+    
+    func test_completeManualStop_whenSpinningWithMatchingGeneration_returnsTrue() {
+        // When user touches wheel to stop it, we need to:
+        // 1. Check if completion should proceed
+        // 2. Stop the spin
+        // This must be atomic to avoid race condition where stopSpin() is called
+        // before the completion check
+        let state = SpinState()
+        state.startSpin(velocity: 500)
+        let gen = state.generation
+        
+        let shouldComplete = state.completeManualStop(forGeneration: gen)
+        
+        XCTAssertTrue(shouldComplete)
+        XCTAssertFalse(state.isSpinning)
+    }
+    
+    func test_completeManualStop_whenNotSpinning_returnsFalse() {
+        let state = SpinState()
+        state.startSpin(velocity: 500)
+        let gen = state.generation
+        state.stopSpin()
+        
+        let shouldComplete = state.completeManualStop(forGeneration: gen)
+        
+        XCTAssertFalse(shouldComplete)
+    }
+    
+    func test_completeManualStop_withOldGeneration_returnsFalse() {
+        let state = SpinState()
+        state.startSpin(velocity: 500)
+        let oldGen = state.generation
+        state.startSpin(velocity: 600) // New spin increments generation
+        
+        let shouldComplete = state.completeManualStop(forGeneration: oldGen)
+        
+        XCTAssertFalse(shouldComplete)
+        XCTAssertTrue(state.isSpinning) // Should NOT stop current spin
+    }
 }

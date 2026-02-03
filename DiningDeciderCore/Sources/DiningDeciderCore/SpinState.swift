@@ -81,6 +81,19 @@ public final class SpinState {
         return gen == generation && isSpinning
     }
     
+    /// Atomically checks if completion should proceed and stops the spin.
+    /// Use this for manual stops where the user touches the wheel to stop it.
+    /// This prevents the race condition where stopSpin() is called before the completion check.
+    /// - Parameter forGeneration: The generation when the spin started
+    /// - Returns: True if completion should proceed (generation matches and was spinning)
+    public func completeManualStop(forGeneration gen: Int) -> Bool {
+        guard gen == generation && isSpinning else {
+            return false
+        }
+        stopSpin()
+        return true
+    }
+    
     // MARK: - Drag Methods
     
     /// Starts a drag gesture

@@ -92,12 +92,12 @@ struct SpinningWheelView: View {
     }
     
     /// Safely completes spin only if generation matches (prevents race condition - Bug #2)
+    /// Uses completeManualStop for atomic check-and-stop to fix popup not showing on manual stop.
     private func safeCompleteSpin(forGeneration generation: Int) {
-        guard viewState.spinState.shouldComplete(forGeneration: generation) else {
-            return // Stale callback, ignore
+        guard viewState.spinState.completeManualStop(forGeneration: generation) else {
+            return // Stale callback or already stopped, ignore
         }
         
-        viewState.spinState.stopSpin()
         hapticManager.spinCompleted()
         notifySpinComplete()
     }
@@ -259,11 +259,14 @@ private enum GestureHandler {
         let state = viewState.spinState
         guard state.isSpinning else { return }
         
-        // Capture generation before stopping
+        // Capture generation before stopping animation
         let generation = state.generation
         
+        // Stop the animation but DON'T call stopSpin() yet!
+        // The delayed callback uses completeManualStop() which atomically
+        // checks generation AND stops the spin. Calling stopSpin() here
+        // would cause the generation check to fail (Bug fix: popup not showing)
         SpinAnimator.stop(viewState: viewState)
-        state.stopSpin()
         
         // Delay popup so user can see where the wheel landed
         // Pass generation to prevent race condition (Bug #2)
