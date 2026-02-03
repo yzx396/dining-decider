@@ -110,7 +110,7 @@ final class WheelPhysicsTests: XCTestCase {
     // MARK: - Constants Tests
 
     func test_defaultConstants_haveExpectedValues() {
-        XCTAssertEqual(WheelPhysics.defaultFriction, 0.98)
+        XCTAssertEqual(WheelPhysics.defaultFriction, 0.99)
         XCTAssertEqual(WheelPhysics.defaultStopThreshold, 1.0)
         XCTAssertEqual(WheelPhysics.maxVelocity, 2000.0)
         XCTAssertEqual(WheelPhysics.defaultFPS, 60.0)

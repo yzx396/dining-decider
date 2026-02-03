@@ -3,8 +3,11 @@ import Foundation
 /// Physics calculations for wheel momentum and deceleration
 public enum WheelPhysics {
 
-    /// Default friction coefficient for wheel deceleration (0.98 = 2% reduction per frame)
-    public static let defaultFriction: Double = 0.98
+    /// Conversion factor from radians to degrees
+    private static let radiansToDegrees: Double = 180.0 / .pi
+
+    /// Default friction coefficient for wheel deceleration (0.99 = 1% reduction per frame)
+    public static let defaultFriction: Double = 0.99
 
     /// Default threshold for considering the wheel stopped (degrees/second)
     public static let defaultStopThreshold: Double = 1.0
@@ -36,7 +39,7 @@ public enum WheelPhysics {
         let deltaX = pointX - centerX
         let deltaY = pointY - centerY
         let radians = atan2(deltaY, deltaX)
-        return radians * 180 / .pi
+        return radians * radiansToDegrees
     }
 
     /// Applies friction to reduce velocity
@@ -45,7 +48,7 @@ public enum WheelPhysics {
     ///   - friction: Friction coefficient (0.0 to 1.0)
     /// - Returns: New velocity after friction applied
     public static func applyFriction(velocity: Double, friction: Double) -> Double {
-        return velocity * friction
+        velocity * friction
     }
 
     /// Determines if the wheel should stop spinning
@@ -54,7 +57,7 @@ public enum WheelPhysics {
     ///   - threshold: Minimum velocity to keep spinning
     /// - Returns: True if wheel should stop
     public static func shouldStop(velocity: Double, threshold: Double) -> Bool {
-        return abs(velocity) < threshold
+        abs(velocity) < threshold
     }
 
     /// Clamps velocity to maximum allowed value
@@ -63,12 +66,7 @@ public enum WheelPhysics {
     ///   - max: Maximum allowed absolute velocity
     /// - Returns: Clamped velocity
     public static func clampVelocity(_ velocity: Double, max: Double) -> Double {
-        if velocity > max {
-            return max
-        } else if velocity < -max {
-            return -max
-        }
-        return velocity
+        min(max, Swift.max(-max, velocity))
     }
 
     /// Calculates rotation change for one frame
