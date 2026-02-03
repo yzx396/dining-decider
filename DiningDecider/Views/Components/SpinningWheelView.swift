@@ -58,6 +58,12 @@ struct SpinningWheelView: View {
             .frame(width: geometry.size.width, height: geometry.size.height)
             .contentShape(Circle())
             .gesture(dragGesture(center: center))
+            .onTapGesture {
+                // Stop spinning when user taps the wheel
+                if isSpinning {
+                    stopSpinning()
+                }
+            }
         }
         .aspectRatio(1, contentMode: .fit)
         .onDisappear {
@@ -222,6 +228,20 @@ struct SpinningWheelView: View {
         hapticManager.spinCompleted()
 
         // Calculate landing sector and notify
+        let sectorIndex = WheelMath.landingSector(rotation: rotation, sectorCount: sectors.count)
+        onSpinComplete?(sectorIndex)
+    }
+
+    /// Stop the wheel immediately when user taps/touches it while spinning
+    private func stopSpinning() {
+        isSpinning = false
+        angularVelocity = 0
+        stopAnimation()
+
+        // Haptic feedback for manual stop
+        hapticManager.spinCompleted()
+
+        // Calculate landing sector at current position
         let sectorIndex = WheelMath.landingSector(rotation: rotation, sectorCount: sectors.count)
         onSpinComplete?(sectorIndex)
     }
