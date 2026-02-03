@@ -48,3 +48,5 @@ playground.xcworkspace
 # API Keys and Secrets - NEVER COMMIT
 DiningDecider/Config/Development.xcconfig
 DiningDecider/Config/Production.xcconfig
+export-options.plist
+build/

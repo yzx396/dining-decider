@@ -53,7 +53,7 @@ struct SpinningWheelView: View {
     }
     
     private func wheelGesture(center: CGPoint, wheelSize: CGFloat) -> some Gesture {
-        DragGesture(minimumDistance: 0)
+        DragGesture()
             .onChanged { value in
                 GestureHandler.handleChanged(
                     value: value,
@@ -152,17 +152,25 @@ private enum GestureHandler {
         rotation: Binding<Double>,
         hapticManager: HapticManager
     ) {
+        // If already in a mode, stay in that mode
+        if state.isDragging {
+            DragMode.update(value: value, center: center, state: state, rotation: rotation)
+            return
+        }
+        
+        if state.isPressing {
+            // Continue pressing, don't switch modes
+            return
+        }
+        
+        // First touch - determine mode based on location
         let isInCenter = PressSpinPhysics.isInCenterRegion(
-            pointX: Double(value.location.x),
-            pointY: Double(value.location.y),
+            pointX: Double(value.startLocation.x),
+            pointY: Double(value.startLocation.y),
             wheelSize: Double(wheelSize)
         )
         
-        if state.isDragging {
-            DragMode.update(value: value, center: center, state: state, rotation: rotation)
-        } else if state.isPressing {
-            // Continue pressing
-        } else if isInCenter && !state.isSpinning {
+        if isInCenter && !state.isSpinning {
             PressMode.start(state: state, hapticManager: hapticManager)
         } else {
             DragMode.start(value: value, center: center, state: state, hapticManager: hapticManager)
