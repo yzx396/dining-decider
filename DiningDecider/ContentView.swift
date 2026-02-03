@@ -116,11 +116,11 @@ struct ContentView: View {
                         }
                         .frame(width: 300, height: 300)
                         .accessibilityLabel("Spinning wheel")
-                        .accessibilityHint("Swipe to spin and get a restaurant recommendation")
+                        .accessibilityHint("Swipe wheel or press and hold center to spin faster. Tap anywhere to stop.")
                         .accessibilityAddTraits(.allowsDirectInteraction)
 
                         // Hint text
-                        Text("Swipe wheel to spin")
+                        Text("Swipe wheel or press & hold button to spin")
                             .font(.subheadline)
                             .foregroundColor(Color.theme.label)
 
