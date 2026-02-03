@@ -82,55 +82,71 @@ struct ContentView: View {
             Color.theme.background
                 .ignoresSafeArea()
 
-            VStack(spacing: 24) {
-                // Controls Card
-                ControlsCard(
-                    isLocationAuthorized: locationManager.isAuthorized,
-                    geocodingService: geocodingService,
-                    onRequestLocation: {
-                        locationManager.requestPermission()
-                    },
-                    locationMode: $locationMode,
-                    manualSearchText: $manualSearchText,
-                    manualLocation: $manualLocation,
-                    manualLocationName: $manualLocationName,
-                    searchRadius: $searchRadius,
-                    selectedVibe: $selectedVibe,
-                    partySize: $partySize
-                )
-                .padding(.horizontal, 20)
-                .padding(.top, 16)
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 24) {
+                        // Controls Card
+                        ControlsCard(
+                            isLocationAuthorized: locationManager.isAuthorized,
+                            geocodingService: geocodingService,
+                            onRequestLocation: {
+                                locationManager.requestPermission()
+                            },
+                            locationMode: $locationMode,
+                            manualSearchText: $manualSearchText,
+                            manualLocation: $manualLocation,
+                            manualLocationName: $manualLocationName,
+                            searchRadius: $searchRadius,
+                            selectedVibe: $selectedVibe,
+                            partySize: $partySize
+                        )
+                        .padding(.horizontal, 20)
+                        .padding(.top, 16)
+                        .id("controls")
 
-                Spacer()
+                        Spacer()
+                            .frame(height: 40)
 
-                // Wheel
-                SpinningWheelView(
-                    sectors: sectors,
-                    rotation: $rotation
-                ) { sectorIndex in
-                    handleSpinComplete(sectorIndex: sectorIndex)
+                        // Wheel
+                        SpinningWheelView(
+                            sectors: sectors,
+                            rotation: $rotation
+                        ) { sectorIndex in
+                            handleSpinComplete(sectorIndex: sectorIndex)
+                        }
+                        .frame(width: 300, height: 300)
+                        .accessibilityLabel("Spinning wheel")
+                        .accessibilityHint("Swipe to spin and get a restaurant recommendation")
+                        .accessibilityAddTraits(.allowsDirectInteraction)
+
+                        // Hint text
+                        Text("Swipe wheel to spin")
+                            .font(.subheadline)
+                            .foregroundColor(Color.theme.label)
+
+                        Spacer()
+                            .frame(height: 40)
+
+                        // Footer
+                        HStack(spacing: 8) {
+                            Image(systemName: "fork.knife")
+                                .foregroundColor(Color.theme.label)
+                            Text("Dining Decider")
+                                .font(.footnote)
+                                .foregroundColor(Color.theme.label)
+                        }
+                        .padding(.bottom, 24)
+                    }
                 }
-                .frame(width: 300, height: 300)
-                .accessibilityLabel("Spinning wheel")
-                .accessibilityHint("Swipe to spin and get a restaurant recommendation")
-                .accessibilityAddTraits(.allowsDirectInteraction)
-
-                // Hint text
-                Text("Swipe wheel to spin")
-                    .font(.subheadline)
-                    .foregroundColor(Color.theme.label)
-
-                Spacer()
-
-                // Footer
-                HStack(spacing: 8) {
-                    Image(systemName: "fork.knife")
-                        .foregroundColor(Color.theme.label)
-                    Text("Dining Decider")
-                        .font(.footnote)
-                        .foregroundColor(Color.theme.label)
+                .scrollDismissesKeyboard(.interactively)
+                .onChange(of: locationMode) { _, newMode in
+                    // Scroll to top when switching to manual mode to ensure text field is visible
+                    if newMode == .manual {
+                        withAnimation {
+                            proxy.scrollTo("controls", anchor: .top)
+                        }
+                    }
                 }
-                .padding(.bottom, 24)
             }
         }
         .sheet(item: $spinResult) { result in
