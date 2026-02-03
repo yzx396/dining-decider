@@ -33,7 +33,7 @@ struct SpinningWheelView: View {
                 wheelSize: wheelSize,
                 state: state
             )
-            .gesture(wheelGesture(center: center, wheelSize: wheelSize))
+            .gesture(wheelGesture(center: center))
             .frame(width: geometry.size.width, height: geometry.size.height)
         }
         .aspectRatio(1, contentMode: .fit)
@@ -43,16 +43,16 @@ struct SpinningWheelView: View {
         }
     }
     
-    private func wheelGesture(center: CGPoint, wheelSize: CGFloat) -> some Gesture {
-        DragGesture()
+    private func wheelGesture(center: CGPoint) -> some Gesture {
+        DragGesture(minimumDistance: 0)
             .onChanged { value in
                 GestureHandler.handleChanged(
                     value: value,
                     center: center,
-                    wheelSize: wheelSize,
                     state: state,
                     rotation: $rotation,
-                    hapticManager: hapticManager
+                    hapticManager: hapticManager,
+                    onStopSpin: completeSpin
                 )
             }
             .onEnded { _ in
@@ -96,11 +96,26 @@ struct SpinningWheelView: View {
 // MARK: - Constants
 
 private enum WheelViewConstants {
+    // Layout
     static let borderWidth: CGFloat = 8
     static let centerButtonSize: CGFloat = 50
     static let pointerOffset: CGFloat = 10
     static let pointerWidth: CGFloat = 20
     static let pointerHeight: CGFloat = 15
+    
+    // Angles
+    static let fullRotation: Double = 360.0
+    static let halfRotation: Double = 180.0
+    static let quarterRotation: Double = 90.0
+    
+    // Timing
+    static let stopSpinDelay: TimeInterval = 0.5
+    static let minimumTapDuration: TimeInterval = 0.3
+    static let pressTimerInterval: TimeInterval = 0.05
+    static let hapticFeedbackInterval: TimeInterval = 0.5
+    
+    // Physics
+    static let dragVelocityAmplification: Double = 1.5
 }
 
 // MARK: - State Management
@@ -132,18 +147,18 @@ private enum GestureHandler {
     static func handleChanged(
         value: DragGesture.Value,
         center: CGPoint,
-        wheelSize: CGFloat,
         state: WheelState,
         rotation: Binding<Double>,
-        hapticManager: HapticManager
+        hapticManager: HapticManager,
+        onStopSpin: @escaping () -> Void
     ) {
         if shouldContinueCurrentMode(state: state) {
             updateCurrentMode(value: value, center: center, state: state, rotation: rotation)
             return
         }
         
-        stopSpinningIfNeeded(state: state, hapticManager: hapticManager)
-        startInteractionMode(value: value, center: center, wheelSize: wheelSize, state: state, hapticManager: hapticManager)
+        stopSpinningIfNeeded(state: state, hapticManager: hapticManager, onStopSpin: onStopSpin)
+        startInteractionMode(value: value, center: center, state: state, hapticManager: hapticManager)
     }
     
     static func handleEnded(
@@ -175,26 +190,32 @@ private enum GestureHandler {
         }
     }
     
-    private static func stopSpinningIfNeeded(state: WheelState, hapticManager: HapticManager) {
+    private static func stopSpinningIfNeeded(
+        state: WheelState,
+        hapticManager: HapticManager,
+        onStopSpin: @escaping () -> Void
+    ) {
         guard state.isSpinning else { return }
         
         SpinAnimator.stop(state: state)
         state.isSpinning = false
         state.angularVelocity = 0
-        hapticManager.spinCompleted()
+        
+        // Delay popup so user can see where the wheel landed
+        DispatchQueue.main.asyncAfter(deadline: .now() + WheelViewConstants.stopSpinDelay) {
+            onStopSpin()
+        }
     }
     
     private static func startInteractionMode(
         value: DragGesture.Value,
         center: CGPoint,
-        wheelSize: CGFloat,
         state: WheelState,
         hapticManager: HapticManager
     ) {
-        let isInCenter = PressSpinPhysics.isInCenterRegion(
-            pointX: Double(value.startLocation.x),
-            pointY: Double(value.startLocation.y),
-            wheelSize: Double(wheelSize)
+        let isInCenter = isInCenterRegion(
+            touchPoint: value.startLocation,
+            center: center
         )
         
         if isInCenter {
@@ -203,14 +224,18 @@ private enum GestureHandler {
             DragMode.start(value: value, center: center, state: state, hapticManager: hapticManager)
         }
     }
+    
+    private static func isInCenterRegion(touchPoint: CGPoint, center: CGPoint) -> Bool {
+        let dx = touchPoint.x - center.x
+        let dy = touchPoint.y - center.y
+        let distance = sqrt(dx * dx + dy * dy)
+        return distance <= PressSpinPhysics.centerRadius
+    }
 }
 
 // MARK: - Press Mode
 
 private enum PressMode {
-    static let timerInterval: TimeInterval = 0.05
-    static let hapticFeedbackInterval: TimeInterval = 0.5
-    
     static func start(state: WheelState, hapticManager: HapticManager) {
         state.isPressing = true
         state.pressStartTime = Date()
@@ -219,7 +244,10 @@ private enum PressMode {
         SpinAnimator.stop(state: state)
         hapticManager.wheelTouchBegan()
         
-        state.pressTimer = Timer.scheduledTimer(withTimeInterval: timerInterval, repeats: true) { _ in
+        state.pressTimer = Timer.scheduledTimer(
+            withTimeInterval: WheelViewConstants.pressTimerInterval,
+            repeats: true
+        ) { _ in
             updateTimer(state: state, hapticManager: hapticManager)
         }
     }
@@ -233,7 +261,19 @@ private enum PressMode {
         state.pressTimer?.invalidate()
         state.pressTimer = nil
         
-        let velocity = PressSpinPhysics.velocity(fromHoldDuration: state.currentHoldDuration)
+        // Calculate actual hold duration from start time directly
+        // (timer-updated value may be stale for quick taps < 50ms)
+        let holdDuration: TimeInterval
+        if let startTime = state.pressStartTime {
+            holdDuration = max(
+                Date().timeIntervalSince(startTime),
+                WheelViewConstants.minimumTapDuration
+            )
+        } else {
+            holdDuration = state.currentHoldDuration
+        }
+        
+        let velocity = PressSpinPhysics.velocity(fromHoldDuration: holdDuration)
         
         if velocity > WheelPhysics.defaultStopThreshold {
             state.angularVelocity = velocity
@@ -257,9 +297,10 @@ private enum PressMode {
     private static func shouldTriggerHapticFeedback(duration: TimeInterval) -> Bool {
         guard duration > 0 else { return false }
         
-        // Trigger haptic every 0.5 seconds (e.g., at 0.5s, 1.0s, 1.5s, etc.)
-        let intervals = Int(duration / hapticFeedbackInterval)
-        let previousIntervals = Int((duration - timerInterval) / hapticFeedbackInterval)
+        let interval = WheelViewConstants.hapticFeedbackInterval
+        let timerInterval = WheelViewConstants.pressTimerInterval
+        let intervals = Int(duration / interval)
+        let previousIntervals = Int((duration - timerInterval) / interval)
         
         return intervals > previousIntervals
     }
@@ -268,8 +309,6 @@ private enum PressMode {
 // MARK: - Drag Mode
 
 private enum DragMode {
-    static let velocityAmplification: Double = 1.5
-    
     static func start(
         value: DragGesture.Value,
         center: CGPoint,
@@ -315,7 +354,7 @@ private enum DragMode {
     ) {
         state.isDragging = false
 
-        let amplifiedVelocity = state.angularVelocity * velocityAmplification
+        let amplifiedVelocity = state.angularVelocity * WheelViewConstants.dragVelocityAmplification
         state.angularVelocity = WheelPhysics.clampVelocity(amplifiedVelocity, max: WheelPhysics.maxVelocity)
 
         if abs(state.angularVelocity) > WheelPhysics.defaultStopThreshold {
@@ -397,8 +436,12 @@ private enum SpinAnimator {
 private enum AngleCalculator {
     static func difference(from: Double, to: Double) -> Double {
         var diff = to - from
-        while diff > 180 { diff -= 360 }
-        while diff < -180 { diff += 360 }
+        while diff > WheelViewConstants.halfRotation {
+            diff -= WheelViewConstants.fullRotation
+        }
+        while diff < -WheelViewConstants.halfRotation {
+            diff += WheelViewConstants.fullRotation
+        }
         return diff
     }
 }
@@ -458,11 +501,11 @@ private struct WheelSectorView: View {
     let totalSectors: Int
     
     private var sectorAngle: Double {
-        360.0 / Double(totalSectors)
+        WheelViewConstants.fullRotation / Double(totalSectors)
     }
     
     private var startAngle: Double {
-        Double(index) * sectorAngle - 90
+        Double(index) * sectorAngle - WheelViewConstants.quarterRotation
     }
     
     private var endAngle: Double {
@@ -495,7 +538,6 @@ private struct SectorLabel: View {
     
     private enum Constants {
         static let radiusMultiplier: CGFloat = 0.65
-        static let angleOffset: Double = 90
         static let lineSpacing: CGFloat = -2
         static let shadowOpacity: Double = 0.3
         static let shadowRadius: CGFloat = 1
@@ -506,7 +548,7 @@ private struct SectorLabel: View {
         GeometryReader { geometry in
             let size = min(geometry.size.width, geometry.size.height)
             let radius = size / 2 * Constants.radiusMultiplier
-            let midAngle = Double(index) * sectorAngle + sectorAngle / 2 - Constants.angleOffset
+            let midAngle = Double(index) * sectorAngle + sectorAngle / 2 - WheelViewConstants.quarterRotation
             
             Text(wrappedText)
                 .font(.caption)
@@ -520,7 +562,7 @@ private struct SectorLabel: View {
                     x: Constants.shadowOffset.x,
                     y: Constants.shadowOffset.y
                 )
-                .rotationEffect(.degrees(midAngle + Constants.angleOffset))
+                .rotationEffect(.degrees(midAngle + WheelViewConstants.quarterRotation))
                 .position(labelPosition(size: size, radius: radius, midAngle: midAngle))
         }
     }
@@ -530,9 +572,10 @@ private struct SectorLabel: View {
     }
     
     private func labelPosition(size: CGFloat, radius: CGFloat, midAngle: Double) -> CGPoint {
-        CGPoint(
-            x: size / 2 + CGFloat(cos(midAngle * .pi / 180)) * radius,
-            y: size / 2 + CGFloat(sin(midAngle * .pi / 180)) * radius
+        let radians = midAngle * .pi / WheelViewConstants.halfRotation
+        return CGPoint(
+            x: size / 2 + CGFloat(cos(radians)) * radius,
+            y: size / 2 + CGFloat(sin(radians)) * radius
         )
     }
 }
