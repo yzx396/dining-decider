@@ -67,19 +67,28 @@ struct SpinningWheelView: View {
     }
     
     private func handleSpinStateChange(_ isSpinning: Bool) {
+        // Note: This may not trigger reliably since SpinState is not @Observable
+        // startSpin() is called directly instead
         if isSpinning {
-            let generation = viewState.spinState.generation
-            SpinAnimator.start(
-                viewState: viewState,
-                rotation: $rotation,
-                onComplete: { safeCompleteSpin(forGeneration: generation) }
-            )
+            beginSpinAnimation()
         }
     }
     
     private func startSpin() {
-        // SpinState.startSpin is called in GestureHandler, which sets isSpinning
-        // The onChange handler above will trigger the animation
+        beginSpinAnimation()
+    }
+    
+    private func beginSpinAnimation() {
+        guard viewState.spinState.isSpinning else { return }
+        
+        let generation = viewState.spinState.generation
+        SpinAnimator.start(
+            viewState: viewState,
+            rotation: $rotation,
+            onComplete: { [self] in
+                safeCompleteSpin(forGeneration: generation)
+            }
+        )
     }
     
     /// Safely completes spin only if generation matches (prevents race condition - Bug #2)
