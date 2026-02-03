@@ -27,9 +27,6 @@ struct ContentView: View {
     // Party size state
     @State private var partySize: Int = PartySize.defaultSize
 
-    // Loading state for API calls
-    @State private var isLoading = false
-
     // Dynamic sectors based on selected vibe
     private var sectors: [WheelSector] {
         selectedVibe.sectors
@@ -39,12 +36,11 @@ struct ContentView: View {
     private let apiService: RestaurantAPIProviding?
 
     init() {
-        // Initialize restaurant loader, fallback to empty if file not found
+        // Initialize restaurant loader, fallback to skeleton data if file not found
         if let loader = try? RestaurantLoader() {
             self.restaurantLoader = loader
         } else {
-            // Fallback for testing/development
-            self.restaurantLoader = MockRestaurantLoader()
+            self.restaurantLoader = FallbackRestaurantLoader()
         }
 
         self.geocodingService = GeocodingService()
@@ -173,11 +169,14 @@ struct ContentView: View {
     }
 
     private func handleSpinComplete(sectorIndex: Int) {
+        // Guard against invalid sector index (Bug #3 - empty sectors crash)
+        guard sectorIndex >= 0 && sectorIndex < sectors.count else {
+            return
+        }
         let category = sectors[sectorIndex].label
 
         // Try API first if configured and we have a location
         if let api = apiService, hasValidLocation, let location = activeLocation {
-            isLoading = true
             Task {
                 do {
                     let restaurants = try await api.fetchRestaurants(
@@ -187,14 +186,11 @@ struct ContentView: View {
                         priceLevels: selectedVibe.allowedPriceLevels
                     )
                     await MainActor.run {
-                        isLoading = false
                         spinResult = SpinResult(category: category, restaurants: restaurants)
                     }
                 } catch {
                     // Fallback to local data on API error
-                    print("API error, falling back to local: \(error)")
                     await MainActor.run {
-                        isLoading = false
                         let localRestaurants = fetchLocalRestaurants(category: category)
                         spinResult = SpinResult(category: category, restaurants: localRestaurants)
                     }
@@ -223,44 +219,6 @@ struct ContentView: View {
             }
             return filteredByPrice.shuffled().prefix(3).map { $0 }
         }
-    }
-}
-
-// MARK: - Mock Loader for Development/Testing
-
-private final class MockRestaurantLoader: RestaurantLoading {
-    var allCategories: [String] {
-        ["Rooftop", "Cafe"]
-    }
-
-    func restaurants(for category: String) -> [Restaurant] {
-        Restaurant.skeletonData
-    }
-
-    func restaurantsFiltered(
-        for category: String,
-        near location: CLLocationCoordinate2D?,
-        radiusMiles: Double
-    ) -> [Restaurant] {
-        restaurantsFiltered(
-            for: category,
-            near: location,
-            radiusMiles: radiusMiles,
-            allowedPriceLevels: nil
-        )
-    }
-
-    func restaurantsFiltered(
-        for category: String,
-        near location: CLLocationCoordinate2D?,
-        radiusMiles: Double,
-        allowedPriceLevels: [Int]?
-    ) -> [Restaurant] {
-        guard location != nil else { return [] }
-        if let levels = allowedPriceLevels {
-            return Restaurant.skeletonData.filter { levels.contains($0.priceLevel) }
-        }
-        return Restaurant.skeletonData
     }
 }
 

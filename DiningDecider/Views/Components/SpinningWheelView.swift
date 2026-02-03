@@ -8,7 +8,7 @@ struct SpinningWheelView: View {
     let onSpinComplete: ((Int) -> Void)?
     let hapticManager: HapticManager
 
-    @StateObject private var state = WheelState()
+    @StateObject private var viewState = WheelViewState()
 
     init(
         sectors: [WheelSector],
@@ -31,33 +31,35 @@ struct SpinningWheelView: View {
                 sectors: sectors,
                 rotation: rotation,
                 wheelSize: wheelSize,
-                state: state
+                viewState: viewState
             )
-            .gesture(wheelGesture(center: center))
+            .gesture(wheelGesture(center: center, wheelSize: wheelSize))
             .frame(width: geometry.size.width, height: geometry.size.height)
         }
         .aspectRatio(1, contentMode: .fit)
         .onDisappear { cleanup() }
-        .onChange(of: state.isSpinning) { _, isSpinning in
+        .onChange(of: viewState.spinState.isSpinning) { _, isSpinning in
             handleSpinStateChange(isSpinning)
         }
     }
     
-    private func wheelGesture(center: CGPoint) -> some Gesture {
+    private func wheelGesture(center: CGPoint, wheelSize: CGFloat) -> some Gesture {
         DragGesture(minimumDistance: 0)
             .onChanged { value in
                 GestureHandler.handleChanged(
                     value: value,
                     center: center,
-                    state: state,
+                    wheelSize: wheelSize,
+                    viewState: viewState,
                     rotation: $rotation,
                     hapticManager: hapticManager,
-                    onStopSpin: completeSpin
+                    sectorCount: sectors.count,
+                    onStopSpin: { gen in safeCompleteSpin(forGeneration: gen) }
                 )
             }
             .onEnded { _ in
                 GestureHandler.handleEnded(
-                    state: state,
+                    viewState: viewState,
                     hapticManager: hapticManager,
                     onStartSpin: startSpin
                 )
@@ -66,30 +68,44 @@ struct SpinningWheelView: View {
     
     private func handleSpinStateChange(_ isSpinning: Bool) {
         if isSpinning {
+            let generation = viewState.spinState.generation
             SpinAnimator.start(
-                state: state,
+                viewState: viewState,
                 rotation: $rotation,
-                onComplete: completeSpin
+                onComplete: { safeCompleteSpin(forGeneration: generation) }
             )
         }
     }
     
     private func startSpin() {
-        state.isSpinning = true
+        // SpinState.startSpin is called in GestureHandler, which sets isSpinning
+        // The onChange handler above will trigger the animation
     }
     
-    private func completeSpin() {
+    /// Safely completes spin only if generation matches (prevents race condition - Bug #2)
+    private func safeCompleteSpin(forGeneration generation: Int) {
+        guard viewState.spinState.shouldComplete(forGeneration: generation) else {
+            return // Stale callback, ignore
+        }
+        
+        viewState.spinState.stopSpin()
         hapticManager.spinCompleted()
         notifySpinComplete()
     }
     
     private func notifySpinComplete() {
-        let sectorIndex = WheelMath.landingSector(rotation: rotation, sectorCount: sectors.count)
+        // Use safeLandingSector to prevent crash on empty sectors (Bug #3)
+        guard let sectorIndex = WheelMath.safeLandingSector(
+            rotation: rotation,
+            sectorCount: sectors.count
+        ) else {
+            return // No sectors, nothing to report
+        }
         onSpinComplete?(sectorIndex)
     }
     
     private func cleanup() {
-        state.cleanup()
+        viewState.cleanup()
     }
 }
 
@@ -110,34 +126,51 @@ private enum WheelViewConstants {
     
     // Timing
     static let stopSpinDelay: TimeInterval = 0.5
-    static let minimumTapDuration: TimeInterval = 0.3
     static let pressTimerInterval: TimeInterval = 0.05
     static let hapticFeedbackInterval: TimeInterval = 0.5
     
-    // Physics
+    /// Minimum tap duration for press-to-spin (Bug #7 documentation)
+    /// Quick taps (< 0.3s) are treated as 0.3s to ensure minimum spin velocity.
+    /// This provides consistent UX where even a tap produces a visible spin.
+    static let minimumTapDuration: TimeInterval = 0.3
+    
+    /// Drag velocity amplification factor (Bug #8 documentation)
+    /// Applied at drag release to make the wheel feel more responsive.
+    /// A 1.5x multiplier means the wheel continues 50% faster than the drag speed.
     static let dragVelocityAmplification: Double = 1.5
 }
 
-// MARK: - State Management
+// MARK: - View State Management
 
-private final class WheelState: ObservableObject {
-    @Published var angularVelocity: Double = 0
-    @Published var isSpinning: Bool = false
-    @Published var isDragging: Bool = false
-    @Published var isPressing: Bool = false
-    @Published var currentHoldDuration: TimeInterval = 0
+/// Observable wrapper around SpinState for SwiftUI integration
+private final class WheelViewState: ObservableObject {
+    let spinState = SpinState()
     
-    var lastAngle: Double = 0
-    var lastDragTime: Date = Date()
-    var pressStartTime: Date?
+    // Display link for smooth animation (Bug #4 fix)
+    var displayLink: CADisplayLink?
+    var displayLinkTarget: DisplayLinkTarget?
+    
+    // Press timer for hold duration feedback
     var pressTimer: Timer?
-    var displayLink: Timer?
+    
+    // Published for UI updates
+    @Published var currentHoldDuration: TimeInterval = 0
     
     func cleanup() {
         pressTimer?.invalidate()
         pressTimer = nil
         displayLink?.invalidate()
         displayLink = nil
+        displayLinkTarget = nil
+    }
+}
+
+/// Target class for CADisplayLink (required because CADisplayLink uses target-action)
+private final class DisplayLinkTarget {
+    var onUpdate: (() -> Void)?
+    
+    @objc func update(_ displayLink: CADisplayLink) {
+        onUpdate?()
     }
 }
 
@@ -147,147 +180,163 @@ private enum GestureHandler {
     static func handleChanged(
         value: DragGesture.Value,
         center: CGPoint,
-        state: WheelState,
+        wheelSize: CGFloat,
+        viewState: WheelViewState,
         rotation: Binding<Double>,
         hapticManager: HapticManager,
-        onStopSpin: @escaping () -> Void
+        sectorCount: Int,
+        onStopSpin: @escaping (Int) -> Void
     ) {
+        let state = viewState.spinState
+        
         if shouldContinueCurrentMode(state: state) {
             updateCurrentMode(value: value, center: center, state: state, rotation: rotation)
             return
         }
         
-        stopSpinningIfNeeded(state: state, hapticManager: hapticManager, onStopSpin: onStopSpin)
-        startInteractionMode(value: value, center: center, state: state, hapticManager: hapticManager)
+        stopSpinningIfNeeded(
+            viewState: viewState,
+            hapticManager: hapticManager,
+            sectorCount: sectorCount,
+            onStopSpin: onStopSpin
+        )
+        startInteractionMode(
+            value: value,
+            center: center,
+            wheelSize: wheelSize,
+            viewState: viewState,
+            hapticManager: hapticManager
+        )
     }
     
     static func handleEnded(
-        state: WheelState,
+        viewState: WheelViewState,
         hapticManager: HapticManager,
         onStartSpin: @escaping () -> Void
     ) {
+        let state = viewState.spinState
+        
         if state.isPressing {
-            PressMode.end(state: state, hapticManager: hapticManager, onStartSpin: onStartSpin)
+            PressMode.end(viewState: viewState, hapticManager: hapticManager, onStartSpin: onStartSpin)
         } else if state.isDragging {
-            DragMode.end(state: state, hapticManager: hapticManager, onStartSpin: onStartSpin)
+            DragMode.end(viewState: viewState, hapticManager: hapticManager, onStartSpin: onStartSpin)
         }
     }
     
     // MARK: - Helper Methods
     
-    private static func shouldContinueCurrentMode(state: WheelState) -> Bool {
+    private static func shouldContinueCurrentMode(state: SpinState) -> Bool {
         state.isDragging || state.isPressing
     }
     
     private static func updateCurrentMode(
         value: DragGesture.Value,
         center: CGPoint,
-        state: WheelState,
+        state: SpinState,
         rotation: Binding<Double>
     ) {
         if state.isDragging {
             DragMode.update(value: value, center: center, state: state, rotation: rotation)
         }
+        // Press mode doesn't need updates during drag
     }
     
     private static func stopSpinningIfNeeded(
-        state: WheelState,
+        viewState: WheelViewState,
         hapticManager: HapticManager,
-        onStopSpin: @escaping () -> Void
+        sectorCount: Int,
+        onStopSpin: @escaping (Int) -> Void
     ) {
+        let state = viewState.spinState
         guard state.isSpinning else { return }
         
-        SpinAnimator.stop(state: state)
-        state.isSpinning = false
-        state.angularVelocity = 0
+        // Capture generation before stopping
+        let generation = state.generation
+        
+        SpinAnimator.stop(viewState: viewState)
+        state.stopSpin()
         
         // Delay popup so user can see where the wheel landed
+        // Pass generation to prevent race condition (Bug #2)
         DispatchQueue.main.asyncAfter(deadline: .now() + WheelViewConstants.stopSpinDelay) {
-            onStopSpin()
+            onStopSpin(generation)
         }
     }
     
     private static func startInteractionMode(
         value: DragGesture.Value,
         center: CGPoint,
-        state: WheelState,
+        wheelSize: CGFloat,
+        viewState: WheelViewState,
         hapticManager: HapticManager
     ) {
-        let isInCenter = isInCenterRegion(
-            touchPoint: value.startLocation,
-            center: center
+        // Use PressSpinPhysics for center detection (Bug #6 - remove duplication)
+        let isInCenter = PressSpinPhysics.isInCenterRegion(
+            pointX: Double(value.startLocation.x - center.x + wheelSize / 2),
+            pointY: Double(value.startLocation.y - center.y + wheelSize / 2),
+            wheelSize: Double(wheelSize)
         )
         
         if isInCenter {
-            PressMode.start(state: state, hapticManager: hapticManager)
+            PressMode.start(viewState: viewState, hapticManager: hapticManager)
         } else {
-            DragMode.start(value: value, center: center, state: state, hapticManager: hapticManager)
+            DragMode.start(value: value, center: center, viewState: viewState, hapticManager: hapticManager)
         }
-    }
-    
-    private static func isInCenterRegion(touchPoint: CGPoint, center: CGPoint) -> Bool {
-        let dx = touchPoint.x - center.x
-        let dy = touchPoint.y - center.y
-        let distance = sqrt(dx * dx + dy * dy)
-        return distance <= PressSpinPhysics.centerRadius
     }
 }
 
 // MARK: - Press Mode
 
 private enum PressMode {
-    static func start(state: WheelState, hapticManager: HapticManager) {
-        state.isPressing = true
-        state.pressStartTime = Date()
-        state.currentHoldDuration = 0
+    static func start(viewState: WheelViewState, hapticManager: HapticManager) {
+        let state = viewState.spinState
+        let now = Date()
         
-        SpinAnimator.stop(state: state)
+        state.startPress(at: now)
+        SpinAnimator.stop(viewState: viewState)
         hapticManager.wheelTouchBegan()
         
-        state.pressTimer = Timer.scheduledTimer(
+        viewState.pressTimer = Timer.scheduledTimer(
             withTimeInterval: WheelViewConstants.pressTimerInterval,
             repeats: true
         ) { _ in
-            updateTimer(state: state, hapticManager: hapticManager)
+            updateTimer(viewState: viewState, hapticManager: hapticManager)
         }
     }
     
     static func end(
-        state: WheelState,
+        viewState: WheelViewState,
         hapticManager: HapticManager,
         onStartSpin: @escaping () -> Void
     ) {
-        state.isPressing = false
-        state.pressTimer?.invalidate()
-        state.pressTimer = nil
+        let state = viewState.spinState
         
-        // Calculate actual hold duration from start time directly
-        // (timer-updated value may be stale for quick taps < 50ms)
-        let holdDuration: TimeInterval
-        if let startTime = state.pressStartTime {
-            holdDuration = max(
-                Date().timeIntervalSince(startTime),
-                WheelViewConstants.minimumTapDuration
-            )
-        } else {
-            holdDuration = state.currentHoldDuration
-        }
+        viewState.pressTimer?.invalidate()
+        viewState.pressTimer = nil
+        
+        let now = Date()
+        var holdDuration = state.endPress(at: now)
+        
+        // Apply minimum tap duration (Bug #7)
+        // This ensures even quick taps produce a visible spin
+        holdDuration = max(holdDuration, WheelViewConstants.minimumTapDuration)
         
         let velocity = PressSpinPhysics.velocity(fromHoldDuration: holdDuration)
         
         if velocity > WheelPhysics.defaultStopThreshold {
-            state.angularVelocity = velocity
+            state.startSpin(velocity: velocity)
             hapticManager.spinStarted()
             onStartSpin()
         }
         
-        state.pressStartTime = nil
-        state.currentHoldDuration = 0
+        viewState.currentHoldDuration = 0
     }
     
-    private static func updateTimer(state: WheelState, hapticManager: HapticManager) {
-        guard let startTime = state.pressStartTime else { return }
-        state.currentHoldDuration = Date().timeIntervalSince(startTime)
+    private static func updateTimer(viewState: WheelViewState, hapticManager: HapticManager) {
+        let state = viewState.spinState
+        let now = Date()
+        state.updatePress(at: now)
+        viewState.currentHoldDuration = state.currentHoldDuration
         
         if shouldTriggerHapticFeedback(duration: state.currentHoldDuration) {
             hapticManager.wheelTouchBegan()
@@ -312,52 +361,58 @@ private enum DragMode {
     static func start(
         value: DragGesture.Value,
         center: CGPoint,
-        state: WheelState,
+        viewState: WheelViewState,
         hapticManager: HapticManager
     ) {
-        state.isDragging = true
-        SpinAnimator.stop(state: state)
-        hapticManager.wheelTouchBegan()
+        let state = viewState.spinState
+        let now = Date()
+        let angle = calculateAngle(value: value, center: center)
         
-        state.lastAngle = calculateAngle(value: value, center: center)
-        state.lastDragTime = Date()
+        state.startDrag(at: now, angle: angle)
+        SpinAnimator.stop(viewState: viewState)
+        hapticManager.wheelTouchBegan()
     }
     
     static func update(
         value: DragGesture.Value,
         center: CGPoint,
-        state: WheelState,
+        state: SpinState,
         rotation: Binding<Double>
     ) {
         let currentAngle = calculateAngle(value: value, center: center)
         let now = Date()
-
-        guard state.lastDragTime != Date.distantPast else { return }
         
-        let angleDelta = AngleCalculator.difference(from: state.lastAngle, to: currentAngle)
-        let timeDelta = now.timeIntervalSince(state.lastDragTime)
-
-        rotation.wrappedValue += angleDelta
-
-        if timeDelta > 0 {
-            state.angularVelocity = WheelPhysics.angularVelocity(angleDelta: angleDelta, duration: timeDelta)
+        // Bug #1 fix: updateDrag returns nil if drag wasn't properly started
+        guard let result = state.updateDrag(currentAngle: currentAngle, at: now) else {
+            return
         }
-
-        state.lastAngle = currentAngle
-        state.lastDragTime = now
+        
+        rotation.wrappedValue += result.angleDelta
+        
+        if result.timeDelta > 0 {
+            let velocity = WheelPhysics.angularVelocity(
+                angleDelta: result.angleDelta,
+                duration: result.timeDelta
+            )
+            state.updateVelocity(velocity)
+        }
     }
     
     static func end(
-        state: WheelState,
+        viewState: WheelViewState,
         hapticManager: HapticManager,
         onStartSpin: @escaping () -> Void
     ) {
-        state.isDragging = false
-
+        let state = viewState.spinState
+        state.endDrag()
+        
+        // Apply velocity amplification (Bug #8)
+        // This makes the wheel feel more responsive by continuing faster than drag speed
         let amplifiedVelocity = state.angularVelocity * WheelViewConstants.dragVelocityAmplification
-        state.angularVelocity = WheelPhysics.clampVelocity(amplifiedVelocity, max: WheelPhysics.maxVelocity)
-
-        if abs(state.angularVelocity) > WheelPhysics.defaultStopThreshold {
+        let clampedVelocity = WheelPhysics.clampVelocity(amplifiedVelocity, max: WheelPhysics.maxVelocity)
+        
+        if abs(clampedVelocity) > WheelPhysics.defaultStopThreshold {
+            state.startSpin(velocity: clampedVelocity)
             hapticManager.spinStarted()
             onStartSpin()
         }
@@ -376,31 +431,41 @@ private enum DragMode {
 // MARK: - Spin Animation
 
 private enum SpinAnimator {
+    /// Starts spin animation using CADisplayLink for smooth 60fps/120fps animation (Bug #4 fix)
     static func start(
-        state: WheelState,
+        viewState: WheelViewState,
         rotation: Binding<Double>,
         onComplete: @escaping () -> Void
     ) {
-        state.displayLink = Timer.scheduledTimer(
-            withTimeInterval: 1.0 / WheelPhysics.defaultFPS,
-            repeats: true
-        ) { _ in
-            update(state: state, rotation: rotation, onComplete: onComplete)
+        // Create target for CADisplayLink
+        let target = DisplayLinkTarget()
+        viewState.displayLinkTarget = target
+        
+        target.onUpdate = { [weak viewState] in
+            guard let viewState = viewState else { return }
+            update(viewState: viewState, rotation: rotation, onComplete: onComplete)
         }
+        
+        let displayLink = CADisplayLink(target: target, selector: #selector(DisplayLinkTarget.update(_:)))
+        displayLink.add(to: .main, forMode: .common)
+        viewState.displayLink = displayLink
     }
     
-    static func stop(state: WheelState) {
-        state.displayLink?.invalidate()
-        state.displayLink = nil
+    static func stop(viewState: WheelViewState) {
+        viewState.displayLink?.invalidate()
+        viewState.displayLink = nil
+        viewState.displayLinkTarget = nil
     }
     
     private static func update(
-        state: WheelState,
+        viewState: WheelViewState,
         rotation: Binding<Double>,
         onComplete: @escaping () -> Void
     ) {
+        let state = viewState.spinState
+        
         guard state.isSpinning else {
-            stop(state: state)
+            stop(viewState: viewState)
             return
         }
 
@@ -410,39 +475,19 @@ private enum SpinAnimator {
         )
         rotation.wrappedValue += delta
 
-        state.angularVelocity = WheelPhysics.applyFriction(
+        let newVelocity = WheelPhysics.applyFriction(
             velocity: state.angularVelocity,
             friction: WheelPhysics.defaultFriction
         )
+        state.updateVelocity(newVelocity)
 
         if WheelPhysics.shouldStop(
             velocity: state.angularVelocity,
             threshold: WheelPhysics.defaultStopThreshold
         ) {
-            complete(state: state, onComplete: onComplete)
+            stop(viewState: viewState)
+            onComplete()
         }
-    }
-    
-    private static func complete(state: WheelState, onComplete: @escaping () -> Void) {
-        state.isSpinning = false
-        state.angularVelocity = 0
-        stop(state: state)
-        onComplete()
-    }
-}
-
-// MARK: - Helper
-
-private enum AngleCalculator {
-    static func difference(from: Double, to: Double) -> Double {
-        var diff = to - from
-        while diff > WheelViewConstants.halfRotation {
-            diff -= WheelViewConstants.fullRotation
-        }
-        while diff < -WheelViewConstants.halfRotation {
-            diff += WheelViewConstants.fullRotation
-        }
-        return diff
     }
 }
 
@@ -452,7 +497,7 @@ private struct WheelContent: View {
     let sectors: [WheelSector]
     let rotation: Double
     let wheelSize: CGFloat
-    @ObservedObject var state: WheelState
+    @ObservedObject var viewState: WheelViewState
     
     var body: some View {
         ZStack {
@@ -463,8 +508,8 @@ private struct WheelContent: View {
             
             PressToSpinButton(
                 size: WheelViewConstants.centerButtonSize,
-                isPressing: state.isPressing,
-                holdDuration: state.currentHoldDuration
+                isPressing: viewState.spinState.isPressing,
+                holdDuration: viewState.currentHoldDuration
             )
             
             PointerIndicator()

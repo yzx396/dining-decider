@@ -47,4 +47,15 @@ public enum WheelMath {
         guard sectorCount > 0 else { return 0 }
         return 360.0 / Double(sectorCount)
     }
+    
+    /// Safe version of landingSector that returns nil for invalid inputs
+    /// Use this when sectors array might be empty to prevent crashes
+    /// - Parameters:
+    ///   - rotation: The total rotation in degrees
+    ///   - sectorCount: Number of sectors on the wheel
+    /// - Returns: Index of the landing sector, or nil if sectorCount <= 0
+    public static func safeLandingSector(rotation: Double, sectorCount: Int) -> Int? {
+        guard sectorCount > 0 else { return nil }
+        return landingSector(rotation: rotation, sectorCount: sectorCount)
+    }
 }

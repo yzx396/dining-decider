@@ -51,7 +51,7 @@ private struct VibeButton: View {
             .clipShape(Capsule())
             .overlay(
                 Capsule()
-                    .stroke(isSelected ? Color.clear : Color(hex: "E0E0E0"), lineWidth: 1)
+                    .stroke(isSelected ? Color.clear : Color.theme.borderColor, lineWidth: 1)
             )
         }
         .buttonStyle(.plain)

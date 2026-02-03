@@ -148,4 +148,31 @@ final class PressSpinPhysicsTests: XCTestCase {
         // Should match WheelPhysics max velocity for consistency
         XCTAssertEqual(PressSpinPhysics.maxVelocity, WheelPhysics.maxVelocity)
     }
+    
+    // MARK: - Bidirectional Spin Tests (Bug #5)
+    
+    func test_velocityWithDirection_clockwise_returnsPositive() {
+        let velocity = PressSpinPhysics.velocity(fromHoldDuration: 0.5, clockwise: true)
+        XCTAssertGreaterThan(velocity, 0)
+    }
+    
+    func test_velocityWithDirection_counterClockwise_returnsNegative() {
+        let velocity = PressSpinPhysics.velocity(fromHoldDuration: 0.5, clockwise: false)
+        XCTAssertLessThan(velocity, 0)
+    }
+    
+    func test_velocityWithDirection_sameMagnitude() {
+        let cwVelocity = PressSpinPhysics.velocity(fromHoldDuration: 0.5, clockwise: true)
+        let ccwVelocity = PressSpinPhysics.velocity(fromHoldDuration: 0.5, clockwise: false)
+        
+        XCTAssertEqual(abs(cwVelocity), abs(ccwVelocity), accuracy: 0.001)
+    }
+    
+    func test_velocityWithDirection_respectsMaxVelocity() {
+        let cwVelocity = PressSpinPhysics.velocity(fromHoldDuration: 10.0, clockwise: true)
+        let ccwVelocity = PressSpinPhysics.velocity(fromHoldDuration: 10.0, clockwise: false)
+        
+        XCTAssertLessThanOrEqual(cwVelocity, PressSpinPhysics.maxVelocity)
+        XCTAssertGreaterThanOrEqual(ccwVelocity, -PressSpinPhysics.maxVelocity)
+    }
 }

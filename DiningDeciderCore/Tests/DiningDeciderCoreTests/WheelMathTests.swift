@@ -115,4 +115,29 @@ final class WheelMathTests: XCTestCase {
         let angle = WheelMath.sectorAngle(sectorCount: 1)
         XCTAssertEqual(angle, 360.0)
     }
+    
+    // MARK: - Safe Landing Sector Tests (Bug #3: Empty Sectors)
+    
+    func test_safeLandingSector_withValidIndex_returnsSector() {
+        let result = WheelMath.safeLandingSector(rotation: 45, sectorCount: 8)
+        XCTAssertEqual(result, 7)
+    }
+    
+    func test_safeLandingSector_withZeroSectors_returnsNil() {
+        let result = WheelMath.safeLandingSector(rotation: 45, sectorCount: 0)
+        XCTAssertNil(result)
+    }
+    
+    func test_safeLandingSector_withNegativeSectors_returnsNil() {
+        let result = WheelMath.safeLandingSector(rotation: 45, sectorCount: -1)
+        XCTAssertNil(result)
+    }
+    
+    func test_safeLandingSector_allValidRotations_returnValidIndices() {
+        for rotation in stride(from: 0, through: 720, by: 45) {
+            let result = WheelMath.safeLandingSector(rotation: Double(rotation), sectorCount: 8)
+            XCTAssertNotNil(result)
+            XCTAssertTrue(result! >= 0 && result! < 8, "Index \(result!) out of bounds for rotation \(rotation)")
+        }
+    }
 }
