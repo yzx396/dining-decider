@@ -54,15 +54,8 @@ private enum PressToSpinButtonConstants {
     static let shadowY: (pressed: CGFloat, normal: CGFloat) = (2, 3)
     static let shadowOpacity: (pressed: Double, normal: Double) = (0.5, 0.2)
     
-    static let gradientOpacity: (pressed: (top: Double, bottom: Double), normal: (top: Double, bottom: Double)) = (
-        pressed: (0.9, 0.7),
-        normal: (0.7, 0.5)
-    )
-    
-    static let innerShadowOpacity: (pressed: (light: Double, dark: Double), normal: (light: Double, dark: Double)) = (
-        pressed: (0.1, 0.1),
-        normal: (0.3, 0.1)
-    )
+    static let innerShadowLightOpacity: (pressed: Double, normal: Double) = (0.1, 0.3)
+    static let innerShadowDarkOpacity: (pressed: Double, normal: Double) = (0.1, 0.1)
 }
 
 // MARK: - Helper
@@ -172,22 +165,11 @@ private struct BackgroundGradient: View {
         Circle()
             .fill(
                 LinearGradient(
-                    gradient: Gradient(colors: gradientColors),
+                    gradient: Gradient(colors: [Color.theme.primaryButton, Color.theme.primaryButton]),
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
             )
-    }
-    
-    private var gradientColors: [Color] {
-        let opacity = isPressing
-            ? PressToSpinButtonConstants.gradientOpacity.pressed
-            : PressToSpinButtonConstants.gradientOpacity.normal
-        
-        return [
-            Color.theme.primaryButton.opacity(opacity.top),
-            Color.theme.primaryButton.opacity(opacity.bottom)
-        ]
     }
 }
 
@@ -207,13 +189,17 @@ private struct InnerShadowBorder: View {
     }
     
     private var borderColors: [Color] {
-        let opacity = isPressing
-            ? PressToSpinButtonConstants.innerShadowOpacity.pressed
-            : PressToSpinButtonConstants.innerShadowOpacity.normal
+        let lightOpacity = isPressing
+            ? PressToSpinButtonConstants.innerShadowLightOpacity.pressed
+            : PressToSpinButtonConstants.innerShadowLightOpacity.normal
+        
+        let darkOpacity = isPressing
+            ? PressToSpinButtonConstants.innerShadowDarkOpacity.pressed
+            : PressToSpinButtonConstants.innerShadowDarkOpacity.normal
         
         return [
-            Color.white.opacity(opacity.light),
-            Color.black.opacity(opacity.dark)
+            Color.white.opacity(lightOpacity),
+            Color.black.opacity(darkOpacity)
         ]
     }
 }

@@ -34,21 +34,12 @@ struct SpinningWheelView: View {
                 state: state
             )
             .gesture(wheelGesture(center: center, wheelSize: wheelSize))
-            .simultaneousGesture(stopGesture)
             .frame(width: geometry.size.width, height: geometry.size.height)
         }
         .aspectRatio(1, contentMode: .fit)
         .onDisappear { cleanup() }
         .onChange(of: state.isSpinning) { _, isSpinning in
             handleSpinStateChange(isSpinning)
-        }
-    }
-    
-    private var stopGesture: some Gesture {
-        TapGesture().onEnded { _ in
-            if state.isSpinning {
-                stopSpinning()
-            }
         }
     }
     
@@ -85,12 +76,6 @@ struct SpinningWheelView: View {
     
     private func startSpin() {
         state.isSpinning = true
-    }
-    
-    private func stopSpinning() {
-        SpinAnimator.stop(state: state)
-        hapticManager.spinCompleted()
-        notifySpinComplete()
     }
     
     private func completeSpin() {
@@ -152,29 +137,13 @@ private enum GestureHandler {
         rotation: Binding<Double>,
         hapticManager: HapticManager
     ) {
-        // If already in a mode, stay in that mode
-        if state.isDragging {
-            DragMode.update(value: value, center: center, state: state, rotation: rotation)
+        if shouldContinueCurrentMode(state: state) {
+            updateCurrentMode(value: value, center: center, state: state, rotation: rotation)
             return
         }
         
-        if state.isPressing {
-            // Continue pressing, don't switch modes
-            return
-        }
-        
-        // First touch - determine mode based on location
-        let isInCenter = PressSpinPhysics.isInCenterRegion(
-            pointX: Double(value.startLocation.x),
-            pointY: Double(value.startLocation.y),
-            wheelSize: Double(wheelSize)
-        )
-        
-        if isInCenter && !state.isSpinning {
-            PressMode.start(state: state, hapticManager: hapticManager)
-        } else {
-            DragMode.start(value: value, center: center, state: state, hapticManager: hapticManager)
-        }
+        stopSpinningIfNeeded(state: state, hapticManager: hapticManager)
+        startInteractionMode(value: value, center: center, wheelSize: wheelSize, state: state, hapticManager: hapticManager)
     }
     
     static func handleEnded(
@@ -188,14 +157,59 @@ private enum GestureHandler {
             DragMode.end(state: state, hapticManager: hapticManager, onStartSpin: onStartSpin)
         }
     }
+    
+    // MARK: - Helper Methods
+    
+    private static func shouldContinueCurrentMode(state: WheelState) -> Bool {
+        state.isDragging || state.isPressing
+    }
+    
+    private static func updateCurrentMode(
+        value: DragGesture.Value,
+        center: CGPoint,
+        state: WheelState,
+        rotation: Binding<Double>
+    ) {
+        if state.isDragging {
+            DragMode.update(value: value, center: center, state: state, rotation: rotation)
+        }
+    }
+    
+    private static func stopSpinningIfNeeded(state: WheelState, hapticManager: HapticManager) {
+        guard state.isSpinning else { return }
+        
+        SpinAnimator.stop(state: state)
+        state.isSpinning = false
+        state.angularVelocity = 0
+        hapticManager.spinCompleted()
+    }
+    
+    private static func startInteractionMode(
+        value: DragGesture.Value,
+        center: CGPoint,
+        wheelSize: CGFloat,
+        state: WheelState,
+        hapticManager: HapticManager
+    ) {
+        let isInCenter = PressSpinPhysics.isInCenterRegion(
+            pointX: Double(value.startLocation.x),
+            pointY: Double(value.startLocation.y),
+            wheelSize: Double(wheelSize)
+        )
+        
+        if isInCenter {
+            PressMode.start(state: state, hapticManager: hapticManager)
+        } else {
+            DragMode.start(value: value, center: center, state: state, hapticManager: hapticManager)
+        }
+    }
 }
 
 // MARK: - Press Mode
 
 private enum PressMode {
     static let timerInterval: TimeInterval = 0.05
-    static let hapticIntervalMultiplier = 10
-    static let hapticIntervalModulo = 5
+    static let hapticFeedbackInterval: TimeInterval = 0.5
     
     static func start(state: WheelState, hapticManager: HapticManager) {
         state.isPressing = true
@@ -235,11 +249,19 @@ private enum PressMode {
         guard let startTime = state.pressStartTime else { return }
         state.currentHoldDuration = Date().timeIntervalSince(startTime)
         
-        // Haptic feedback every 0.5 seconds
-        let duration = state.currentHoldDuration
-        if duration > 0 && Int(duration * Double(hapticIntervalMultiplier)) % hapticIntervalModulo == 0 {
+        if shouldTriggerHapticFeedback(duration: state.currentHoldDuration) {
             hapticManager.wheelTouchBegan()
         }
+    }
+    
+    private static func shouldTriggerHapticFeedback(duration: TimeInterval) -> Bool {
+        guard duration > 0 else { return false }
+        
+        // Trigger haptic every 0.5 seconds (e.g., at 0.5s, 1.0s, 1.5s, etc.)
+        let intervals = Int(duration / hapticFeedbackInterval)
+        let previousIntervals = Int((duration - timerInterval) / hapticFeedbackInterval)
+        
+        return intervals > previousIntervals
     }
 }
 
@@ -471,23 +493,34 @@ private struct SectorLabel: View {
     let index: Int
     let sectorAngle: Double
     
-    private let radiusMultiplier: CGFloat = 0.65
-    private let angleOffset: Double = 90
+    private enum Constants {
+        static let radiusMultiplier: CGFloat = 0.65
+        static let angleOffset: Double = 90
+        static let lineSpacing: CGFloat = -2
+        static let shadowOpacity: Double = 0.3
+        static let shadowRadius: CGFloat = 1
+        static let shadowOffset: (x: CGFloat, y: CGFloat) = (0, 1)
+    }
     
     var body: some View {
         GeometryReader { geometry in
             let size = min(geometry.size.width, geometry.size.height)
-            let radius = size / 2 * radiusMultiplier
-            let midAngle = Double(index) * sectorAngle + sectorAngle / 2 - angleOffset
+            let radius = size / 2 * Constants.radiusMultiplier
+            let midAngle = Double(index) * sectorAngle + sectorAngle / 2 - Constants.angleOffset
             
             Text(wrappedText)
                 .font(.caption)
                 .fontWeight(.semibold)
                 .multilineTextAlignment(.center)
-                .lineSpacing(-2)
+                .lineSpacing(Constants.lineSpacing)
                 .foregroundColor(color.contrastTextColor)
-                .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
-                .rotationEffect(.degrees(midAngle + angleOffset))
+                .shadow(
+                    color: .black.opacity(Constants.shadowOpacity),
+                    radius: Constants.shadowRadius,
+                    x: Constants.shadowOffset.x,
+                    y: Constants.shadowOffset.y
+                )
+                .rotationEffect(.degrees(midAngle + Constants.angleOffset))
                 .position(labelPosition(size: size, radius: radius, midAngle: midAngle))
         }
     }
